@@ -170,3 +170,8 @@ C:\AspNet\WorkloadTest\WorkloadTest\bin\zh-Hant\System.Spatial.resources.dll
 C:\AspNet\WorkloadTest\WorkloadTest\obj\Debug\WorkloadTest.csprojResolveAssemblyReference.cache
 C:\AspNet\WorkloadTest\WorkloadTest\obj\Debug\WorkloadTest.dll
 C:\AspNet\WorkloadTest\WorkloadTest\obj\Debug\WorkloadTest.pdb
+C:\AspNet\WorkloadTest\WorkloadTest\bin\Content\wdCalendar\alert.css
+C:\AspNet\WorkloadTest\WorkloadTest\bin\Content\wdCalendar\calendar.css
+C:\AspNet\WorkloadTest\WorkloadTest\bin\Content\wdCalendar\dailog.css
+C:\AspNet\WorkloadTest\WorkloadTest\bin\Content\wdCalendar\dp.css
+C:\AspNet\WorkloadTest\WorkloadTest\bin\Content\wdCalendar\main.css

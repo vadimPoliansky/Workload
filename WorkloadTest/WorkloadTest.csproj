@@ -258,11 +258,21 @@
     <Content Include="Content\themes\base\minified\jquery.ui.slider.min.css" />
     <Content Include="Content\themes\base\minified\jquery.ui.tabs.min.css" />
     <Content Include="Content\themes\base\minified\jquery.ui.theme.min.css" />
-    <Content Include="Content\wdCalendar\alert.css" />
-    <Content Include="Content\wdCalendar\calendar.css" />
-    <Content Include="Content\wdCalendar\dailog.css" />
-    <Content Include="Content\wdCalendar\dp.css" />
-    <Content Include="Content\wdCalendar\main.css" />
+    <Content Include="Content\wdCalendar\alert.css">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\wdCalendar\calendar.css">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\wdCalendar\dailog.css">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\wdCalendar\dp.css">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\wdCalendar\main.css">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="DocX.dll" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
