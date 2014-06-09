@@ -71,7 +71,7 @@
                         workloadUnits = data.Workload_Unit_ID;
                     }
                     var newDate;
-                    newDate = event.end == null ? event.start : event.end;
+                    newDate = event.end == null ? event.start.toUTCString() : event.end.toUTCString();
                     if (resize) {
                         workload = new Date(event.end - event.start);
                         workloadDays = workload / 1000 / 60 / 60 / 24 + 1;
