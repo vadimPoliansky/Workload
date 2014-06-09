@@ -36,6 +36,8 @@ namespace WorkloadTest.Models
         public string User_Added { get; set; }
         public DateTime? Date_Added { get; set; }
 
+        public bool? Saved { get; set; } 
+
         public virtual ICollection<Paths> Path { get; set; }
     }
 

@@ -10,6 +10,7 @@ using WorkloadTest.ViewModels;
 using WorkloadTest.Helper;
 using Novacode;
 using System.Diagnostics;
+using System.IO;
 
 namespace WorkloadTest.Controllers
 {
@@ -22,10 +23,16 @@ namespace WorkloadTest.Controllers
 
         public ActionResult Index()
         {
-            return View(db.Tasks.ToList());
+            var viewModel = new IndexViewModel
+            {
+                allCoEs = db.CoEs.ToList(),
+                allAnalysts = db.Analysts.ToList(),
+                allTasks = db.Tasks.ToList(),
+            };
+            return View(viewModel);
         }
 
-        public ActionResult TaskList()
+        public ActionResult TaskList(int? coeID, int? analystID)
         {
             List<InstanceViewModel> allInstances = new List<InstanceViewModel>();
             InstanceListViewModel viewModel = new InstanceListViewModel();
@@ -39,7 +46,21 @@ namespace WorkloadTest.Controllers
 
             Exceptions exception = new Exceptions();
 
-            foreach (var task in db.Tasks)
+            List<Tasks> allTasks = db.Tasks.Where(x => x.Saved.Value).ToList();
+            if (coeID.HasValue)
+            {
+                if (coeID != 5)
+                {
+                    allTasks = allTasks.Where(x => x.CoE_ID == coeID).ToList();
+                }
+            }
+            if (analystID.HasValue)
+            {
+                allTasks = allTasks.Where(x => x.Analyst_ID == analystID).ToList();
+            }
+
+
+            foreach (var task in allTasks)
             {
                 for (var i = 0; i <= task.Count; i++)
                 {
@@ -240,19 +261,28 @@ namespace WorkloadTest.Controllers
         }
 
         [HttpGet]
-        public ActionResult Create()
+        public ActionResult Create(int? id)
         {
-            var newTask = db.Tasks.Create();
-            db.Tasks.Add(newTask);
-            db.SaveChanges();
+            var task = new Tasks();
+            if (id.HasValue)
+            {
+                task = db.Tasks.FirstOrDefault(x => x.Task_ID == id);
+            }
+            else
+            {
+                task = db.Tasks.Create();
+                db.Tasks.Add(task);
+                db.SaveChanges();
+            }
             var viewModel = new CreateViewModel
             {
-                task = newTask,
+                task = task,
                 allCoEs = db.CoEs.ToList(),
                 allWorkload_Units = db.Workload_Units.ToList(),
                 allAnalysts = db.Analysts.ToList(),
                 allPeriods = db.Periods.ToList(),
                 allPath_Types = db.Path_Types.ToList(),
+                allPaths = db.Paths.ToList(),
             };
             return View(viewModel);
         }
@@ -271,7 +301,7 @@ namespace WorkloadTest.Controllers
             return View(tasks);
         }
 
-        public void createFrontPage(IList<InstanceListViewModel> instanceList)
+        public ActionResult createFrontPage(IList<InstanceListViewModel> instanceList)
         {
             var analystID = instanceList[0].allInstances.FirstOrDefault().Analyst_ID;
             var analyst = db.Analysts.FirstOrDefault(x=>x.Analyst_ID == analystID);
@@ -279,13 +309,67 @@ namespace WorkloadTest.Controllers
 
             var allPaths = db.Paths.ToList();
             var allPathTypes = db.Path_Types.ToList();
-            Helper.FrontPage.CreateFrontPage(instanceList[0], analystName, allPaths, allPathTypes);
+            //Helper.FrontPage.CreateFrontPage(instanceList[0], analystName, allPaths, allPathTypes);
+
+            var filePathTemplate = HttpContext.Server.MapPath("~/App_Data/frontPageTemplate.docx");
+            var filePathFrontPage = HttpContext.Server.MapPath("~/App_Data/frontPage.docx");
+
+            var docTemplate = DocX.Load(filePathTemplate);
+
+            using (var combined = DocX.Load(filePathFrontPage))
+            {
+                foreach (var instance in instanceList[0].allInstances)
+                {
+                    combined.InsertDocument(docTemplate);
+                    combined.ReplaceText("%Task_ID%", instance.Task_ID.ToString());
+                    if (instance.Routine)
+                    {
+                        combined.ReplaceText("%Routine%", "Routine");
+                    }
+                    else
+                    {
+                        combined.ReplaceText("%Routine%", "Ad Hoc");
+                    }
+
+                    var pathString = "";
+                    pathString += instance.Data_Source + Environment.NewLine;
+                    var i = 1;
+                    foreach (var otherPath in allPaths.Where(x => x.Task_ID == instance.Task_ID && x.Path_Type_ID == 1))
+                    {
+                        pathString += otherPath.Location + Environment.NewLine;
+                        combined.ReplaceText("%Line" + i + "%", "");
+                        i++;
+                    }
+                    for (var j = i; j <= 13; j++)
+                    {
+                        combined.ReplaceText("%Line" + j + "%", " ");
+                    }
+
+                    combined.ReplaceText("%Description%", instance.Description ?? " ");
+                    combined.ReplaceText("%Requestor%", instance.Requestor ?? " ");
+                    combined.ReplaceText("%Request_Date%", instance.Request_Date != null ? instance.Request_Date.ToString() : " ");
+                    combined.ReplaceText("%Task_Date%", instance.Task_Date != null ? instance.Task_Date.ToString() : " ");
+                    combined.ReplaceText("%Purpose%", instance.Purpose ?? " ");
+                    combined.ReplaceText("%Comment%", instance.Comment ?? " ");
+                    combined.ReplaceText("%Analyst%", analystName);
+                    combined.ReplaceText("%Paths%", pathString ?? " ");
+                }
+                MemoryStream ms = new MemoryStream();
+                combined.SaveAs(ms);
+                Response.Clear();
+                Response.AddHeader("content-disposition", "attachment; filename=\"" + "DFGFDG" + ".doc\"");
+                Response.ContentType = "application/msword";
+
+                ms.WriteTo(Response.OutputStream);
+                Response.End();
+                return View(Response);
+            }
+
         }
 
         //
         // GET: /Task/Edit/5
 
-        [HttpPost]
         public JsonResult createPath(IList<Paths> paths)
         {
             var newPath = paths[0];
@@ -355,6 +439,14 @@ namespace WorkloadTest.Controllers
         {
             Tasks tasks = db.Tasks.Find(id);
             db.Tasks.Remove(tasks);
+            db.SaveChanges();
+            return RedirectToAction("Index");
+        }
+
+        public ActionResult Done(int? id)
+        {
+            Tasks task = db.Tasks.Find(id);
+            task.Saved = true;
             db.SaveChanges();
             return RedirectToAction("Index");
         }

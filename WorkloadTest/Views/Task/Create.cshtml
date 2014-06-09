@@ -5,21 +5,25 @@
 <h2>Create</h2>
 <form>
     <div class="row">
-    @Html.DisplayTextFor(x=>x.task.Task_ID)
-    </div>
-    <div class="row">
         <div class="large-12 columns">
-            <input type="checkbox" value="0" id="Routine"/> @Html.DisplayNameFor(x=>x.task.Routine)
+            <div data-alert class="alert-box">
+                ID: @Html.DisplayTextFor(x=>x.task.Task_ID)
+            </div>
         </div>
     </div>
     <div class="row">
         <div class="large-12 columns">
-            <input type="checkbox" value="0" id="Priority"/> @Html.DisplayNameFor(x=>x.task.Priority)
+            <input type="checkbox" value="@Html.DisplayTextFor(x=>x.task.Routine)" id="Routine"/> @Html.DisplayNameFor(x=>x.task.Routine)
         </div>
     </div>
     <div class="row">
         <div class="large-12 columns">
-            <label>@Html.DisplayNameFor(x=>x.task.Description): <input type="text" value="" id="Description" /> </label>
+            <input type="checkbox" value="@Html.DisplayTextFor(x=>x.task.Priority)" id="Priority"/> @Html.DisplayNameFor(x=>x.task.Priority)
+        </div>
+    </div>
+    <div class="row">
+        <div class="large-12 columns">
+            <label>@Html.DisplayNameFor(x=>x.task.Description): <input type="text" value="@Html.DisplayTextFor(x=>x.task.Description)" id="Description" /> </label>
         </div>
     </div>
     <div class="row">
@@ -29,7 +33,11 @@
             <select id="CoE_ID">
                 @foreach (var coe in Model.allCoEs)
                 {
-                    <option value="@coe.CoE_ID">@coe.CoE</option>
+                    if (Model.task.CoE_ID == coe.CoE_ID){
+                        <option selected="selected" value="@coe.CoE_ID">@coe.CoE</option>
+                    }else{
+                        <option value="@coe.CoE_ID">@coe.CoE</option>
+                    }
                 }
             </select>
             </label>
@@ -37,12 +45,12 @@
     </div>
     <div class="row">
         <div class="large-12 columns">
-            <label>@Html.DisplayNameFor(x=>x.task.Purpose): <input type="text" value="" id="Purpose" /></label>
+            <label>@Html.DisplayNameFor(x=>x.task.Purpose): <input type="text" value="@Html.DisplayTextFor(x=>x.task.Purpose)" id="Purpose" /></label>
         </div>
     </div>
     <div class="row">
         <div class="large-12 columns">
-            <label>@Html.DisplayNameFor(x=>x.task.Requestor): <input type="text" value="" id="Requestor" /></label>
+            <label>@Html.DisplayNameFor(x=>x.task.Requestor): <input type="text" value="@Html.DisplayTextFor(x=>x.task.Requestor)" id="Requestor" /></label>
         </div>
     </div>
     <div class="row">
@@ -51,7 +59,12 @@
             @Html.DisplayNameFor(x=>x.task.Analyst_ID): <select id="Analyst_ID">
             @foreach (var analyst in Model.allAnalysts.OrderBy(x=>x.First_Name))
             {
-                <option value="@analyst.Analyst_ID">@analyst.First_Name, @analyst.Last_Name</option>
+                if (Model.task.Analyst_ID == analyst.Analyst_ID)
+                {
+                    <option selected="selected" value="@analyst.Analyst_ID">@analyst.First_Name, @analyst.Last_Name</option>
+                }else{
+                    <option value="@analyst.Analyst_ID">@analyst.First_Name, @analyst.Last_Name</option>
+                }
             }
             </select>
             </label>
@@ -59,12 +72,12 @@
     </div>
     <div class="row">
         <div class="large-12 columns">
-            <label>@Html.DisplayNameFor(x=>x.task.Start_Date): <input type="text" value="" id="Start_Date" /></label>
+            <label>@Html.DisplayNameFor(x=>x.task.Start_Date): <input type="text" value="@Html.DisplayTextFor(x=>x.task.Start_Date)" id="Start_Date" /></label>
         </div>
     </div>
     <div class="row">
         <div class="large-12 columns">
-            <label>@Html.DisplayNameFor(x=>x.task.Request_Date): <input type="text" value="" id="Request_Date" /></label>
+            <label>@Html.DisplayNameFor(x=>x.task.Request_Date): <input type="text" value="@Html.DisplayTextFor(x=>x.task.Request_Date)" id="Request_Date" /></label>
         </div>
     </div>
     <div Routine="1">
@@ -73,10 +86,10 @@
     <div class="row">
         <legend>Routine</legend>
         <div class="large-8 columns">
-            <label>@Html.DisplayNameFor(x=>x.task.Frequency): <input type="text" value="" id="Frequency" /> <span>    </span></label>
+            <label>@Html.DisplayNameFor(x=>x.task.Frequency): <input type="text" value="@Html.DisplayTextFor(x=>x.task.Frequency)" id="Frequency" /> <span>    </span></label>
         </div>
         <div class="large-4 columns">
-            <label>@Html.DisplayNameFor(x=>x.task.Count): <input type="text" value="" id="Count" /></label>
+            <label>@Html.DisplayNameFor(x=>x.task.Count): <input type="text" value="@Html.DisplayTextFor(x=>x.task.Count)" id="Count" /></label>
         </div>
     </div>
     <div class="row">
@@ -85,7 +98,11 @@
             @Html.DisplayNameFor(x=>x.task.Period_ID): <select id="Period_ID">
             @foreach (var period in Model.allPeriods.OrderBy(x=>x.Sort))
             {
-                <option value="@period.Period_ID">@period.Period_Name</option>
+                if (period.Period_ID == Model.task.Period_ID){
+                    <option selected="selected" value="@period.Period_ID">@period.Period_Name</option>
+                } else {
+                    <option value="@period.Period_ID">@period.Period_Name</option>
+                }
             }
             </select>
             </label>
@@ -96,42 +113,62 @@
     </div>
     <div class="row">
         <div class="large-8 columns">
-            <label>@Html.DisplayNameFor(x=>x.task.Workload): <input type="text" value="" id="Workload" /> <span>  </span></label>
+            <label>@Html.DisplayNameFor(x=>x.task.Workload): <input type="text" value="@Html.DisplayTextFor(x=>x.task.Workload)" id="Workload" /> <span>  </span></label>
         </div>
         <div class="large-4 columns">
             <label>
             @Html.DisplayNameFor(x=>x.task.Workload_Unit_ID): <select id="Workload_Unit_ID">
             @foreach (var workloadUnit in Model.allWorkload_Units.OrderBy(x=>x.Sort))
             {
-                <option value="@workloadUnit.Workload_Unit_ID">@workloadUnit.Workload_Unit_Name</option>
+                if (workloadUnit.Workload_Unit_ID == Model.task.Workload_Unit_ID){
+                    <option selected="selected" value="@workloadUnit.Workload_Unit_ID">@workloadUnit.Workload_Unit_Name</option>
+                } else{
+                    <option value="@workloadUnit.Workload_Unit_ID">@workloadUnit.Workload_Unit_Name</option>
+                }
             }
             </select>
             </label>
         </div>
     </div>
     <div class="row">
+
     <fieldset>
         <div class="large-12 columns">
-            <label>@Html.DisplayNameFor(x=>x.task.Data_Source): <input type="text" value="" id="Data_Source" /> <input type="file" id="Data_Source_File"></label>
+            <label>@Html.DisplayNameFor(x=>x.task.Data_Source): <input type="text" value="@Html.DisplayTextFor(x=>x.task.Data_Source)" id="Data_Source" /> <input type="file" id="Data_Source_File"></label>
         </div>
     </fieldset>
     </div>
     <div class="row">
     <fieldset>
         <div class="large-12 columns">
-            <label>@Html.DisplayNameFor(x=>x.task.Report_Location): <input type="text" value="" id="Report_Location" /> <input type="file" id="Report_Location_File"> </label>
+            <label>@Html.DisplayNameFor(x=>x.task.Report_Location): <input type="text" value="@Html.DisplayTextFor(x=>x.task.Report_Location)" id="Report_Location" /> <input type="file" id="Report_Location_File"> </label>
         </div>
     </fieldset>
     </div>
     <div class="row">
-        <ol id="pathList"></ol>
+    <ol id="pathList">
+    @foreach(var path in Model.allPaths.Where(x=>x.Task_ID == Model.task.Task_ID)){
+        <fieldset><span path_id="@path.Path_ID">
+            <select id="Period_ID">
+            @foreach (var pathType in Model.allPath_Types.OrderBy(x=>x.Sort))
+            {
+                if (pathType.Path_Type_ID == path.Path_Type_ID){
+                    <option selected="selected" value="@pathType.Path_Type_ID">@pathType.Path_Type</option>
+                } else {
+                    <option value="@pathType.Path_Type_ID">@pathType.Path_Type</option>
+                }
+            }
+        </select><input type="text" value="@path.Title" id="Title_@path.Path_ID"><input type="text" value="@path.Location" id="Path_@path.Path_ID"><input type="file" id="File_@path.Path_ID"></span></fieldset>
+    }
+    </ol>
+
     </div>
     <div class="row">
         <button id="addPath" type="button">Add File/Folders</button>
     </div>
     <div class="row">
         <div class="large-12 columns">
-            <label>@Html.DisplayNameFor(x=>x.task.Comment): <textarea id="Comment" rows="5"></textarea></label>
+            <label>@Html.DisplayNameFor(x=>x.task.Comment): <textarea id="Comment" rows="5">@Html.DisplayTextFor(x=>x.task.Comment)</textarea></label>
         </div>
     </div>
 
@@ -139,7 +176,17 @@
         <ol id="instanceList"></ol>
     </div>
 
-    <button id="createFrontPage" type="button"> Front Page</button>
+    <div class="row">
+        <div class="large-7 columns">
+            @Html.ActionLink("Done", "Done", new { id = Model.task.Task_ID }, new {@class="button"})
+        </div>
+        <div class="large-3 columns">
+            <button id="createFrontPage" type="button"> Front Page</button>
+        </div>
+        <div class="large-2 columns">
+            @Html.ActionLink("Delete", "Delete", new { id = Model.task.Task_ID }, new {@class="button"})
+        </div>
+    </div>
 </form>
 
 <script src='../../Scripts/jquery-1.11.1.min.js'></script>
@@ -182,7 +229,7 @@
                 Path_Type_ID: @Html.DisplayTextFor(x => x.allPath_Types.LastOrDefault().Path_Type_ID),
             });
             $.ajax({
-                url: 'createPath',
+                url: "@Url.Action("createPath", "Task")",
                 type: 'POST',
                 data: JSON.stringify(parameters),
                 contentType: 'application/json; charset=utf-8',
@@ -247,7 +294,7 @@
                 Task_ID: taskID,
             });
             $.ajax({
-                url: 'updatePath',
+                url: "@Url.Action("updatePath", "Task")",
                 type: 'POST',
                 data: JSON.stringify(parameters),
                 contentType: 'application/json; charset=utf-8',
@@ -311,7 +358,7 @@
                 allInstances: allInstances,
             });
             $.ajax({
-                url: 'createFrontPage',
+                url: "@Url.Action("createFrontPage", "Task")",
                 type: 'POST',
                 data: JSON.stringify(parameters),
                 contentType: 'application/json; charset=utf-8',
@@ -407,7 +454,7 @@
                 parameters[0].Exception_ID =  exceptionID;
             }
             $.ajax({
-                url: 'drop',
+                url: "@Url.Action("drop", "Task")",
                 type: 'POST',
                 data: JSON.stringify(parameters),
                 contentType: 'application/json; charset=utf-8',

@@ -198,6 +198,7 @@
     <Compile Include="Models\TaskModels.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ViewModels\CreateVM.cs" />
+    <Compile Include="ViewModels\IndexVM.cs" />
     <Compile Include="ViewModels\InstanceVM.cs" />
     <Compile Include="ViewModels\RecurrencesVM.cs" />
   </ItemGroup>

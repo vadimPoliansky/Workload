@@ -67,6 +67,11 @@
                 },
                 eventResize: function (event, dayDelta, minuteDelta, allDay, revertFunc) {
                     updateDrop(event, true)
+                },
+                eventClick: function(calEvent, jsEvent, view) {
+                    url = "@Url.Action("Create", "Task", new {id = "XXX"})";
+                    url = url.replace( "XXX", calEvent.task_id);
+                    window.open(url, "popupWindow", "width=600,height=600,scrollbars=yes");
                 }
             });
 
@@ -101,7 +106,7 @@
                         Workload_Unit: workloadUnits,
                     })
                     $.ajax({
-                        url: 'drop',
+                        url: "@Url.Action("drop", "Task")",
                         type: 'POST',
                         data: JSON.stringify(parameters),
                         contentType: 'application/json; charset=utf-8',
