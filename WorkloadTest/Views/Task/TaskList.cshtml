@@ -80,7 +80,7 @@
                     parameters.push({
                         Task_ID: parseInt(event.task_id),
                         Instance_ID: parseInt(event.instance_id),
-                        Date: newDate,
+                        Date: newDate.toUTCString(),
                         Canceled: false,
                         Comment: comment,
                         Exception_ID: exception_id,
