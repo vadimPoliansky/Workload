@@ -177,3 +177,4 @@ C:\AspNet\WorkloadTest\WorkloadTest\bin\Content\wdCalendar\dp.css
 C:\AspNet\WorkloadTest\WorkloadTest\bin\Content\wdCalendar\main.css
 C:\AspNet\WorkloadTest\WorkloadTest\bin\App_Data\frontPageTemplate.docx
 C:\AspNet\WorkloadTest\WorkloadTest\bin\App_Data\logoOPEO.png
+C:\AspNet\WorkloadTest\WorkloadTest\bin\App_Data\frontPage.docx

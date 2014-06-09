@@ -19,7 +19,7 @@ namespace WorkloadTest.Helper
 
             var docTemplate = DocX.Load(filePathTemplate);
 
-            using (var combined = DocX.Create(filePathFrontPage))
+            using (var combined = DocX.Load(filePathFrontPage))
             {
                 foreach (var instance in instanceList.allInstances)
                 {
