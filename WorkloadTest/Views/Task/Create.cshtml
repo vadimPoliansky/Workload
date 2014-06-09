@@ -135,8 +135,9 @@
         </div>
     </div>
 
-
-    <ol id="instanceList"></ol>
+    <div class="row">
+        <ol id="instanceList"></ol>
+    </div>
 
     <button id="createFrontPage" type="button"> Front Page</button>
 </form>
@@ -194,6 +195,7 @@
                     child.setAttribute('Path_ID', pathID);
 
                     var pathTitle = document.createElement('input');
+                    pathTitle.placeholder = "Title";
                     pathTitle.type = 'text';
                     pathTitle.id = 'Title_' + pathID;
                     pathTitle.onchange = function () {
@@ -424,6 +426,7 @@
                 $("#" + list.id).empty();
                 for (var i = 0; i < data.length; i++) {
                     var exceptionID = data[i].Exception_ID || null;
+                    var fieldset = document.createElement('fieldset');
                     var entry = document.createElement('li');
                     entry.setAttribute("Routine",1);
                     var date = new Date(parseInt(data[i].Task_Date.substr(6)));
@@ -440,6 +443,7 @@
                     child.setAttribute("Exception_ID", exceptionID);
                     child.setAttribute("Instance",1);
 
+
                     var canceled = document.createElement('input');
                     canceled.type = "checkbox";
                     canceled.checked = data[i].Canceled || false;
@@ -454,15 +458,22 @@
                     comment.type = "text";
                     comment.value = data[i].Instance_Comment || "";
                     comment.id = "Comment_" + i;
+                    comment.text
+                    comment.placeholder = "Comment";
                     comment.onchange = function () {
                         instance = this.parentNode.getAttribute("Instance_ID");
                         date = document.getElementById("Task_Date_" + instance).value;
                         drop(date, instance);
                     }
 
+                    var canceledLabel = document.createElement('label');
+                    canceledLabel.innerHTML = "Cancel";
+                    canceledLabel.setAttribute("for", "Canceled_" + i);
+
                     var task_date = document.createElement('input');
                     task_date.type = "text";
                     task_date.id = "Task_Date_" + i;
+                    task_date.placeholder = "Rescheduale";
                     if (!!newDate){
                         task_date.value = newDate;
                     }
@@ -476,15 +487,18 @@
                     //var childText = document.createTextNode(
                         //date.format("mmmm dd, yyyy")
                     //);
-                    var originalDate = document.createElement('label');
+                    var originalDate = document.createElement('span');
+                    originalDate.className ='label';
                     originalDate.innerHTML = date.format("mmmm dd, yyyy");
                     originalDate.id = "Original_Task_Date_" + i;
 
                     child.appendChild(originalDate);
                     child.appendChild(task_date);
                     child.appendChild(canceled);
+                    child.appendChild(canceledLabel);
                     child.appendChild(comment);
-                    entry.appendChild(child);
+                    fieldset.appendChild(child);
+                    entry.appendChild(fieldset);
                     list.appendChild(entry);
                 }
             });

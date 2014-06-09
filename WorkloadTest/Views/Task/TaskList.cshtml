@@ -12,9 +12,22 @@
 <script src='../../Scripts/fullcalendar/jquery.min.js'></script>
 <script src='../../Scripts/fullcalendar/jquery-ui.custom.min.js'></script>
 <script src='../../Scripts/fullcalendar/fullcalendar.min.js'></script>
+<script src='../../Scripts/date.format.js'></script>
+<script src='../../Scripts/date.js'></script>
     <script>
 
         $(document).ready(function ($) {
+
+            function getDate(date, format) {
+                if (date !== ""){
+                    var parsedDate = Date.parse(date.toString()).toString();
+                    var realValue = new Date(parsedDate);
+                    return realValue.format(format);
+                }else{
+                    return null;
+                }
+            }
+
 
             $('#calendar').fullCalendar({
                 header: {
@@ -80,7 +93,7 @@
                     parameters.push({
                         Task_ID: parseInt(event.task_id),
                         Instance_ID: parseInt(event.instance_id),
-                        Date: newDate.toUTCString(),
+                        Date: newDate,
                         Canceled: false,
                         Comment: comment,
                         Exception_ID: exception_id,

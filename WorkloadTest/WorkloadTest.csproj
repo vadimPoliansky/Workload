@@ -276,9 +276,13 @@
     <Content Include="DocX.dll" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
-    <Content Include="App_Data\frontPageTemplate.docx" />
+    <Content Include="App_Data\frontPageTemplate.docx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <None Include="Scripts\jquery-1.8.2.intellisense.js" />
-    <Content Include="App_Data\logoOPEO.png" />
+    <Content Include="App_Data\logoOPEO.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Scripts\date.format.js" />
     <Content Include="Scripts\date.js" />
     <Content Include="Content\foundation.css" />
