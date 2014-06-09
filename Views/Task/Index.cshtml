@@ -1,0 +1,129 @@
+﻿@model IEnumerable<WorkloadTest.Models.Tasks>
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>Index</h2>
+
+<p>
+    @Html.ActionLink("Create New", "Create")
+</p>
+<table>
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Routine)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Priority)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.CoE_ID)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Analyst_ID)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Description)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Purpose)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Requestor)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Workload)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Workload_Unit_ID)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Comment)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Start_Date)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Request_Date)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Count)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Frequency)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Period_ID)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.User_Added)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Date_Added)
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.Routine)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Priority)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.CoE_ID)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Analyst_ID)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Description)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Purpose)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Requestor)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Workload)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Workload_Unit_ID)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Comment)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Start_Date)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Request_Date)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Count)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Frequency)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Period_ID)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.User_Added)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Date_Added)
+        </td>
+        <td>
+            @Html.ActionLink("Edit", "Edit", new { id=item.Task_ID }) |
+            @Html.ActionLink("Details", "Details", new { id=item.Task_ID }) |
+            @Html.ActionLink("Delete", "Delete", new { id=item.Task_ID })
+        </td>
+    </tr>
+}
+
+</table>

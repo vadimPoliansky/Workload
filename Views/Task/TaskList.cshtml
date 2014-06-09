@@ -1,0 +1,185 @@
+﻿@model WorkloadTest.ViewModels.InstanceListViewModel
+
+@{
+    ViewBag.Title = "TaskList";
+}
+
+<button id="test">Color by Analyst</button>
+
+<!DOCTYPE html>
+<html>
+<head>
+<link href='../../Scripts/fullcalendar/fullcalendar.css' rel='stylesheet' />
+<link href='../../Scripts/fullcalendar/fullcalendar.print.css' rel='stylesheet' media='print' />
+<script src='../../Scripts/fullcalendar/jquery.min.js'></script>
+<script src='../../Scripts/fullcalendar/jquery-ui.custom.min.js'></script>
+<script src='../../Scripts/fullcalendar/fullcalendar.min.js'></script>
+    <script>
+
+        $(document).ready(function ($) {
+
+            var currFilter = 1;
+
+            var colors =
+                [   
+                    "RGB(14, 0, 144)",
+                    "RGB(144, 0, 0)",
+                    "RGB(0, 144, 67)",
+                    "RGB(155, 0, 155)",
+                    "RGB(0, 153, 153)",
+                    "RGB(154, 92, 0)",
+                    "RGB(51, 154, 0)",
+                ];
+            var eventColorsCoE = {
+                @{var i=0;
+                foreach(var coe in Model.allCoEs){
+                    @:Color_@coe.CoE_ID : colors[@i],
+                    i++;
+                }}
+            }
+            var eventColorsAnalyst = {
+                @{var j=0;
+                foreach(var analyst in Model.allAnalysts){
+                    @:Color_@analyst.Analyst_ID: colors[@j],
+                    j++;
+                }}
+            }
+
+            $("#test").on('click',function(){
+                var events = $('#calendar').fullCalendar('clientEvents');
+                for (var i in events)
+                {
+                    if (currFilter === 1){
+                        var event = events[i];
+                        for (var key in eventColorsAnalyst){
+                            if(key == "Color_" + event.analyst_id){
+                                event.color = eventColorsAnalyst[key];
+                            };
+                        }
+                        $('#calendar').fullCalendar('updateEvent', event);
+                    } else {
+                        var event = events[i];
+                        for (var key in eventColorsCoE){
+                            if(key == "Color_" + event.coe_id){
+                                event.color = eventColorsCoE[key];
+                            };
+                        }
+                        $('#calendar').fullCalendar('updateEvent', event);
+                    }
+                }
+                if (currFilter === 1){ currFilter = 0; } else { currFilter = 1;};
+            });
+
+            $('#calendar').fullCalendar({
+                header: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'year,month,agendaWeek,agendaDay'
+                },
+                editable: true,
+                events: [
+                @foreach (var task in Model.allInstances)
+                {
+                    if (task.Task_Date != null)
+                    {
+                        string allDay;
+                        if (task.Task_Date.Value.TimeOfDay.TotalSeconds == 0 && task.Task_Date_From.Value.TimeOfDay.TotalSeconds == 0)
+                        {
+                            allDay = "true";
+                        }
+                        else
+                        {
+                            allDay = "false";
+                        }
+                        <text>
+				        {
+				            title: "@task.Task_ID:@Model.allCoEs.FirstOrDefault(x => x.CoE_ID == task.CoE_ID).CoE-@task.Description",
+				            start: '@task.Task_Date_From.Value.Year - @task.Task_Date_From.Value.Month - @task.Task_Date_From.Value.Day  @task.Task_Date_From.Value.TimeOfDay',
+				            end: '@task.Task_Date.Value.Year - @task.Task_Date.Value.Month - @task.Task_Date.Value.Day  @task.Task_Date.Value.TimeOfDay',
+				            task_id: "@task.Task_ID",
+				            instance_id: "@task.Instance",
+				            comment: "@task.Instance_Comment",
+				            allDay: @allDay,
+				            analyst_id: "@task.Analyst_ID",
+                            coe_id: "@task.CoE_ID",
+				            color: eventColorsCoE.Color_@task.CoE_ID,
+				        },
+                        </text>
+                    }
+                }
+                ],
+                editable: true,
+                eventDrop: function (event, dayDelta, minuteDelta, allDay, revertFunc) {
+                    updateDrop(event, false)
+                },
+                eventResize: function (event, dayDelta, minuteDelta, allDay, revertFunc) {
+                    updateDrop(event, true)
+                }
+            });
+
+            function updateDrop(event, resize) {
+                $.getJSON('drop', { Task_ID_Filter: parseInt(event.task_id), Instance_ID_Filter: parseInt(event.instance_id) }, function (data) {
+                    var exception_id;
+                    var comment;
+                    var workload;
+                    var workloadDays;
+                    var workloadUnits;
+                    if (data.Exception_ID != 0) {
+                        exception_id = data.Exception_ID;
+                        comment = data.Comment;
+                        workloadDays = data.Workload;
+                        workloadUnits = data.Workload_Unit_ID;
+                    }
+                    var newDate;
+                    newDate = event.end == null ? event.start : event.end;
+                    if (resize) {
+                        workload = new Date(event.end - event.start);
+                        workloadDays = workload / 1000 / 60 / 60 / 24 + 1;
+                    }
+                    var parameters = [];
+                    parameters.push({
+                        Task_ID: parseInt(event.task_id),
+                        Instance_ID: parseInt(event.instance_id),
+                        Date: newDate,
+                        Canceled: false,
+                        Comment: comment,
+                        Exception_ID: exception_id,
+                        Workload: workloadDays,
+                        Workload_Unit: workloadUnits,
+                    })
+                    $.ajax({
+                        url: 'drop',
+                        type: 'POST',
+                        data: JSON.stringify(parameters),
+                        contentType: 'application/json; charset=utf-8',
+                        success: function (result) {
+
+                        },
+                        error: function (request) {
+                        }
+                    });
+                });
+            }
+        });
+
+    </script>
+<style>
+
+	body {
+		margin-top: 40px;
+		text-align: center;
+		font-size: 14px;
+		font-family: "Lucida Grande",Helvetica,Arial,Verdana,sans-serif;
+		}
+
+	#calendar {
+		width: 900px;
+		margin: 0 auto;
+		}
+
+</style>
+</head>
+<body>
+<div id='calendar'></div>
+</body>
+</html>

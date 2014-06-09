@@ -149,7 +149,7 @@
     <ol id="pathList">
     @foreach(var path in Model.allPaths.Where(x=>x.Task_ID == Model.task.Task_ID)){
         <fieldset><span path_id="@path.Path_ID">
-            <select id="Period_ID">
+            <select path_id="@path.Path_ID" id="Path_Type_ID_@path.Path_ID">
             @foreach (var pathType in Model.allPath_Types.OrderBy(x=>x.Sort))
             {
                 if (pathType.Path_Type_ID == path.Path_Type_ID){
@@ -158,7 +158,7 @@
                     <option value="@pathType.Path_Type_ID">@pathType.Path_Type</option>
                 }
             }
-        </select><input type="text" value="@path.Title" id="Title_@path.Path_ID"><input type="text" value="@path.Location" id="Path_@path.Path_ID"><input type="file" id="File_@path.Path_ID"></span></fieldset>
+        </select><input path_id="@path.Path_ID" type="text" value="@path.Title" id="Title_@path.Path_ID"><input type="text" path_id="@path.Path_ID" value="@path.Location" id="Path_@path.Path_ID"><input path_id="@path.Path_ID" type="file" id="File_@path.Path_ID"></span></fieldset>
     }
     </ol>
 
@@ -303,6 +303,13 @@
             });
         }
 
+        $('span[path_ID]').each(function(index){
+            var pathID = this.getAttribute("path_ID");
+            this.onchange = function (){
+                updatePath(pathID);
+            }
+        });
+
         $('#createFrontPage').on('click', function(){
             var allInstances = [];
             var dataSourcePath = document.getElementById('Data_Source').value ? document.getElementById('Data_Source').value : "";
@@ -414,6 +421,14 @@
                 error: function (request) {
                 }
             });
+        }
+
+        start_date = document.getElementById('Start_Date').value
+        frequency = document.getElementById('Frequency').value;
+        period_id = document.getElementById('Period_ID').value
+        count = document.getElementById('Count').value
+        if (!!start_date && !!frequency && !!period_id && !!count) {
+            fetchInstances(0, start_date, frequency, period_id, count);
         }
 
         $("#Frequency,#Start_Date,#Period_ID,#Count").on('change keyup paste', function () {

@@ -14,9 +14,152 @@
 <script src='../../Scripts/fullcalendar/fullcalendar.min.js'></script>
 <script src='../../Scripts/date.format.js'></script>
 <script src='../../Scripts/date.js'></script>
+
+<style>
+
+<style>
+
+	body {
+		margin-top: 40px;
+		text-align: center;
+		font-size: 14px;
+		font-family: "Lucida Grande",Helvetica,Arial,Verdana,sans-serif;
+	}
+		
+	#wrap {
+		width: 1100px;
+		margin: 0 auto;
+	}
+		
+	#external-events {
+		float: left;
+		width: 150px;
+		padding: 0 10px;
+		border: 1px solid #ccc;
+		background: #eee;
+		text-align: left;
+	}
+		
+	#external-events h4 {
+		font-size: 16px;
+		margin-top: 0;
+		padding-top: 1em;
+	}
+		
+	.external-event { /* try to mimick the look of a real event */
+		margin: 10px 0;
+		padding: 2px 4px;
+		background: #3366CC;
+		color: #fff;
+		font-size: .85em;
+		cursor: pointer;
+	}
+		
+	#external-events p {
+		margin: 1.5em 0;
+		font-size: 11px;
+		color: #666;
+	}
+		
+	#external-events p input {
+		margin: 0;
+		vertical-align: middle;
+	}
+
+	#calendar {
+		float: right;
+		width: 900px;
+	}
+
+</style>
+
+</style>
+</head>
+<body>
+    <div class="large-2 columns">
+            		<div id='external-events'>
+			<div class='external-event'>New Task</div>
+            <div class='external-event'>My Task 1</div>
+			<div class='external-event'>My Task 2</div>
+			<div class='external-event'>My Task 3</div>
+			<div class='external-event'>My Task 4</div>
+			<div class='external-event'>My Task 5</div>
+			<p>
+				<input type='checkbox' id='drop-remove' />
+				<label for='drop-remove'>remove after drop</label>
+			</p>
+		</div>
+    </div>
+    <div class ="large-8 columns">
+    <div id='calendar'></div>
+    
+        @{string[] colors = {
+            "RGB(14, 0, 144)",
+            "RGB(144, 0, 0)",
+            "RGB(0, 144, 67)",
+            "RGB(155, 0, 155)",
+            "RGB(0, 153, 153)",
+            "RGB(154, 92, 0)",
+            "RGB(51, 154, 0)",
+        };}
+    </div>
+    <div class="large-2 columns">
+    <input class="button" id="switchColor" value="Color by CoE"></input>
+    <div id="coeColors">
+    @{
+        var k =0;
+        foreach(var coe in Model.allCoEs){
+            <div class="row"><div class="large-12 columns large-centered">
+            <ul style="color:white;background-color:@colors[k]" >@coe.CoE</ul>
+            </div></div>
+            k++;
+        }
+    }
+    </div>
+    <div id="analystColors">
+    @{
+
+        var l =0;
+        foreach(var analyst in Model.allAnalysts){
+            <div class="row"><div class="large-12 columns large-centered">
+            <ul style="color:white;background-color:@colors[l]" >@analyst.Last_Name,@analyst.First_Name</ul>
+            </div></div>
+            l++;
+        }
+    }
+    </div>
+    </div>
+</body>
+  
+</html>
+
     <script>
 
         $(document).ready(function ($) {
+
+            /* initialize the external events
+-----------------------------------------------------------------*/
+	
+            $('#external-events div.external-event').each(function() {
+		
+                // create an Event Object (http://arshaw.com/fullcalendar/docs/event_data/Event_Object/)
+                // it doesn't need to have a start or end
+                var eventObject = {
+                    title: $.trim($(this).text()) // use the element's text as the event title
+                };
+			
+                // store the Event Object in the DOM element so we can get to it later
+                $(this).data('eventObject', eventObject);
+			
+                // make the event draggable using jQuery UI
+                $(this).draggable({
+                    zIndex: 999,
+                    revert: true,      // will cause the event to go back to its
+                    revertDuration: 0  //  original position after the drag
+                });
+			
+            });
+	
 
             function getDate(date, format) {
                 if (date !== ""){
@@ -28,6 +171,64 @@
                 }
             }
 
+            var currFilter = 1;
+            document.getElementById('analystColors').style.display = "none";
+
+            var colors = [
+                @foreach(var color in colors){
+                    @:"@color",
+                }
+            ];
+
+            var eventColorsCoE = {
+                @{var i=0;
+                foreach(var coe in Model.allCoEs){
+                    @:Color_@coe.CoE_ID : colors[@i],
+                    i++;
+                }}
+            }
+            var eventColorsAnalyst = {
+                @{var j=0;
+                foreach(var analyst in Model.allAnalysts){
+                    @:Color_@analyst.Analyst_ID: colors[@j],
+                    j++;
+                }}
+            }
+
+            $("#switchColor").on('click',function(){
+                var events = $('#calendar').fullCalendar('clientEvents');
+                for (var i in events)
+                {
+                    if (currFilter === 1){
+                        var event = events[i];
+                        for (var key in eventColorsAnalyst){
+                            if(key == "Color_" + event.analyst_id){
+                                event.color = eventColorsAnalyst[key];
+                            };
+                        }
+                        $('#calendar').fullCalendar('updateEvent', event);
+                    } else {
+                        var event = events[i];
+                        for (var key in eventColorsCoE){
+                            if(key == "Color_" + event.coe_id){
+                                event.color = eventColorsCoE[key];
+                            };
+                        }
+                        $('#calendar').fullCalendar('updateEvent', event);
+                    }
+                }
+                if (currFilter === 1){ 
+                    currFilter = 0; 
+                    this.value = "Color By Analyst";  
+                    document.getElementById('coeColors').style.display = "none";
+                    document.getElementById('analystColors').style.display = "block";
+                } else {
+                    currFilter = 1;
+                    this.value = "Color By CoE";
+                    document.getElementById('coeColors').style.display = "block";
+                    document.getElementById('analystColors').style.display = "none";
+                }
+            });
 
             $('#calendar').fullCalendar({
                 header: {
@@ -55,7 +256,10 @@
 				            task_id: "@task.Task_ID",
 				            instance_id: "@task.Instance",
 				            comment: "@task.Instance_Comment",
-                            allDay: @allDay,
+				            allDay: @allDay,
+				            analyst_id: "@task.Analyst_ID",
+				            coe_id: "@task.CoE_ID",
+				            color: eventColorsCoE.Color_@task.CoE_ID,
 				        },
                         </text>
                     }
@@ -72,7 +276,29 @@
                     url = "@Url.Action("Create", "Task", new {id = "XXX"})";
                     url = url.replace( "XXX", calEvent.task_id);
                     window.open(url, "popupWindow", "width=600,height=600,scrollbars=yes");
-                }
+                },
+                droppable: true, // this allows things to be dropped onto the calendar !!!
+                drop: function(date) { // this function is called when something is dropped
+			
+                    // retrieve the dropped element's stored Event Object
+                    var originalEventObject = $(this).data('eventObject');
+				
+                    // we need to copy it, so that multiple events don't have a reference to the same object
+                    var copiedEventObject = $.extend({}, originalEventObject);
+				
+                    // assign it the date that was reported
+                    copiedEventObject.start = date;
+				
+                    // render the event on the calendar
+                    // the last `true` argument determines if the event "sticks" (http://arshaw.com/fullcalendar/docs/event_rendering/renderEvent/)
+                    $('#calendar').fullCalendar('renderEvent', copiedEventObject, true);
+				
+                    // is the "remove after drop" checkbox checked?
+                    if ($('#drop-remove').is(':checked')) {
+                        // if so, remove the element from the "Draggable Events" list
+                        $(this).remove();
+                    }
+                },
             });
 
             function updateDrop(event, resize) {
@@ -121,23 +347,3 @@
         });
 
     </script>
-<style>
-
-	body {
-		margin-top: 40px;
-		text-align: center;
-		font-size: 14px;
-		font-family: "Lucida Grande",Helvetica,Arial,Verdana,sans-serif;
-		}
-
-	#calendar {
-		width: 900px;
-		margin: 0 auto;
-		}
-
-</style>
-</head>
-<body>
-<div id='calendar'></div>
-</body>
-</html>
