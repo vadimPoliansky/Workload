@@ -428,22 +428,11 @@ namespace WorkloadTest.Controllers
         //
         // GET: /Task/Delete/5
 
-        public ActionResult Delete(int? id = null)
-        {
-            Tasks tasks = db.Tasks.Find(id);
-            if (tasks == null)
-            {
-                return HttpNotFound();
-            }
-            return View(tasks);
-        }
 
         //
         // POST: /Task/Delete/5
 
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public ActionResult DeleteConfirmed(int? id)
+        public ActionResult Delete(int? id)
         {
             Tasks tasks = db.Tasks.Find(id);
             db.Tasks.Remove(tasks);
