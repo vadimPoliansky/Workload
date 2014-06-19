@@ -1,0 +1,228 @@
+﻿@using IndInv.Helpers
+@model IndInv.Models.ViewModels.PRViewModel
+@using IndInv.Models
+@using System.Globalization
+
+@{
+    ViewBag.Title = "View Performance Reports";
+}
+<h2>@ViewBag.Title</h2>
+<!--
+<button id="clickExcel">Export to excel</button>
+-->
+
+<style>
+.prHeader1
+{
+    font-size:11px;
+    background-color:Navy;
+    color:White;
+    text-align:center;
+    padding: 0px;
+}
+.prHeader2
+{
+    font-size:11px;
+    background-color:White;
+    color:Black;
+    text-align:center;
+    padding: 0px;
+}
+.prArea
+{
+    font-size:11px;
+    background-color:Silver;
+    text-align:justify;
+    color:Black;
+    padding: 0px;
+}
+.prRowID
+{
+    font-size:11px;
+    background-color:White;
+    text-align:center;
+    color:Black;
+    min-width:6.5%;
+    padding: 0px 2px 0px 2px;
+}
+.prRowTitle
+{
+    font-size:11px;
+    background-color:White;
+    text-align:justify;
+    color:Black;
+    min-width:6.5%;
+    padding: 0px 2px 0px 2px;
+}
+.prRow
+{
+    font-size:11px;
+    background-color:White;
+    text-align:center;
+    color:Black;
+    min-width:6.5%;
+    max-width:15%;
+    padding: 0px;
+}
+html> .prRow
+{
+    font-size:11px;
+    background-color:White;
+    text-align:center;
+    color:Black;
+    width:6.5%;
+    width:15%;
+    padding: 0px;
+}
+.cssRed
+{
+    font-size:11px;
+    background-color:Red;
+    text-align:center;
+    color:White;
+    min-width:6.5%;
+    padding: 0px;
+}
+.cssGreen
+{
+    font-size:11px;
+    background-color:Green;
+    text-align:center;
+    color:White;
+    min-width:6.5%;
+    padding: 0px;
+}
+.cssYellow
+{
+    font-size:11px;
+    background-color:Yellow;
+    text-align:center;
+    color:Black;
+    min-width:6.5%;
+    padding: 0px;
+}
+
+.cssWhite
+{
+    font-size:11px;
+    background-color:White;
+    text-align:center;
+    color:Black;
+    min-width:6.5%;
+    padding: 0px;
+}
+
+.inventoryEdit
+{
+    padding: 0 0 0 0;
+    margin: 0 0 0 0; 
+}
+.textBox1
+{
+    font-size:11px;
+    width:inherit;
+    padding: 0 0 0 0;
+    margin: 0 0 0 0;
+    border:0;
+    background-color:transparent;
+    color:inherit;
+}
+</style>
+
+
+@foreach (var coe in Model.allCoEs)
+{
+    <h3>@Html.DisplayFor(modelItem => coe.CoE)</h3>
+    <table id="tbl" border="1" style="border-collapse:collapse; table-layout:fixed" runat="server" >
+    <tr class="prHeader1">
+    <td rowspan="2", class="prHeader1">@Html.DisplayNameFor(modelItem => Model.allMaps.First().Number) </td>
+    <td rowspan="2", class="prHeader1">@Html.DisplayNameFor(modelItem => Model.allMaps.First().Indicator.Indicator) </td>
+    <td rowspan="2", class="prHeader1">@Html.DisplayNameFor(modelItem => Model.allMaps.First().Indicator.FY_10_11) </td>
+    <td rowspan="2", class="prHeader1">@Html.DisplayNameFor(modelItem => Model.allMaps.First().Indicator.FY_11_12) </td>
+    <td rowspan="2", class="prHeader1">@Html.DisplayNameFor(modelItem => Model.allMaps.First().Indicator.FY_12_13) </td>
+    <td rowspan="1", colspan ="5", class="prHeader1">FY 13/14 Performance</td>
+    <td rowspan="2", class="prHeader1">@Html.DisplayNameFor(modelItem => Model.allMaps.First().Indicator.Target) </td>
+    <td rowspan="2", class="prHeader1">@Html.DisplayNameFor(modelItem => Model.allMaps.First().Indicator.Performance_Threshold) </td>
+    <td rowspan="2", class="prHeader1">@Html.DisplayNameFor(modelItem => Model.allMaps.First().Indicator.Comparator) </td>
+    </tr>
+
+    <tr class="prHeader2">
+    <td rowspan="1", class="prHeader2">@Html.DisplayNameFor(modelItem => Model.allMaps.First().Indicator.FY_13_14_Q1) </td>
+    <td rowspan="1", class="prHeader2">@Html.DisplayNameFor(modelItem => Model.allMaps.First().Indicator.FY_13_14_Q2) </td>
+    <td rowspan="1", class="prHeader2">@Html.DisplayNameFor(modelItem => Model.allMaps.First().Indicator.FY_13_14_Q3) </td>
+    <td rowspan="1", class="prHeader2">@Html.DisplayNameFor(modelItem => Model.allMaps.First().Indicator.FY_13_14_Q4) </td>
+    <td rowspan="1", class="prHeader2">@Html.DisplayNameFor(modelItem => Model.allMaps.First().Indicator.FY_13_14_YTD) </td>
+    </tr>
+    @{var numCount = 1;}
+    @foreach (var area_map in coe.Area_CoE_Map)
+    {
+        <tr >
+        <td class="prArea" colspan="100%">@Html.DisplayFor(modelItem => area_map.Area.Area)     @Html.DisplayFor(modelItem => area_map.Objective)</td>
+        </tr>
+
+        foreach (var map in Model.allMaps.Where(e => e.Indicator.Area.Equals(area_map.Area)).Where(d => d.CoE.CoE.Contains(coe.CoE)).OrderBy(f => f.Number))
+        {
+            <tr style="background-color:White">
+            <td class="prRowID" style="min-width:1%;" >@numCount</td>
+            @{numCount++;}
+            <td style="min-width:29%" class="prRowTitle">@Html.DisplayFor(modelItem => map.Indicator.Indicator)
+            <sup>
+            @{int j = 0;}
+            @foreach (var Footnote in map.Indicator.Indicator_Footnote_Map.Where(e => e.Indicator_ID == map.Indicator_ID).OrderBy(e => e.Indicator_ID))
+            {
+                if (j != 0)
+                { @Html.Raw(",");
+                }
+                @Html.DisplayFor(modelItem => Footnote.Footnote_ID);
+                                                                   j++;
+            }
+            @{string[,] columns = new string[,]{
+                    {map.Indicator.FY_10_11, map.Indicator.FY_10_11_Sup,"prRow"},
+                    {map.Indicator.FY_11_12, map.Indicator.FY_11_12_Sup,"prRow"},
+                    {map.Indicator.FY_12_13, map.Indicator.FY_12_13_Sup,"prRow"},
+                    {map.Indicator.FY_13_14_Q1, map.Indicator.FY_13_14_Q1_Sup,map.Indicator.Q1_Color,},
+                    {map.Indicator.FY_13_14_Q2, map.Indicator.FY_13_14_Q2_Sup,map.Indicator.Q2_Color,},
+                    {map.Indicator.FY_13_14_Q3, map.Indicator.FY_13_14_Q3_Sup,map.Indicator.Q3_Color,},
+                    {map.Indicator.FY_13_14_Q4, map.Indicator.FY_13_14_Q4_Sup,map.Indicator.Q4_Color,},
+                    {map.Indicator.FY_13_14_YTD, map.Indicator.FY_13_14_YTD_Sup,map.Indicator.YTD_Color,},
+                    {map.Indicator.Target, map.Indicator.Target_Sup,"prRow"},
+                    {map.Indicator.Performance_Threshold, map.Indicator.Performance_Threshold_Sup,"prRow"},
+                    {map.Indicator.Comparator, map.Indicator.Comparator_Sup,"prRow"},
+                };
+            }
+            </sup>
+            </td>
+            @for (int i = 0; i <= columns.GetUpperBound(0); i++)
+            {
+                int colSpan = 1;
+                if (i != columns.GetUpperBound(0) && columns[i + 1, 0] == "=")
+                {
+                    int k = 1;
+                    while (columns[i + k, 0] == "=")
+                    {
+                        colSpan++;
+                        k++;
+                    }
+                }
+                else { colSpan = 1; };
+                if (columns[i, 0] != "=")
+                {
+                    <td align="center", colspan="@colSpan", class=@Html.Raw(columns[i, 2])>@Html.Raw(columns[i, 0]) <sup>@Html.Raw(columns[i, 1])</sup></td>
+                }
+            }
+            </tr>
+        }
+    }
+    </table>
+    foreach (var test in Model.allFootnoteMaps.Where(x => coe.Indicator_CoE_Map.Any(y => y.Indicator.Indicator_Footnote_Map == x.Indicator.Indicator_Footnote_Map)).Distinct())
+    {
+        <div class="row"><div class="small">
+        @Html.DisplayFor(modelItem => test.Footnote.Footnote)
+        </div></div>
+    }
+    <br />
+    <br />
+
+}
+
+

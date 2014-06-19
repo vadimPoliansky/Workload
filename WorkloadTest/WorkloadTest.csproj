@@ -292,6 +292,7 @@
     <Content Include="Content\foundation.css" />
     <Content Include="Scripts\fastclick.js" />
     <Content Include="Scripts\foundation.min.js" />
+    <Content Include="Scripts\foundation.offcanvas.js" />
     <Content Include="Scripts\fullcalendar\fullcalendar.css" />
     <Content Include="Scripts\fullcalendar\fullcalendar.js" />
     <Content Include="Scripts\fullcalendar\fullcalendar.min.js" />
@@ -306,6 +307,8 @@
     <Content Include="Scripts\jquery-migrate-1.2.1.js" />
     <Content Include="Scripts\jquery-ui-1.8.24.js" />
     <Content Include="Scripts\jquery-ui-1.8.24.min.js" />
+    <Content Include="Scripts\jquery.multilevelpushmenu.css" />
+    <Content Include="Scripts\jquery.multilevelpushmenu.js" />
     <Content Include="Scripts\jquery.unobtrusive-ajax.js" />
     <Content Include="Scripts\jquery.unobtrusive-ajax.min.js" />
     <Content Include="Scripts\jquery.validate.js" />
@@ -314,6 +317,7 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\knockout-2.2.0.debug.js" />
     <Content Include="Scripts\knockout-2.2.0.js" />
+    <Content Include="Scripts\mlpushmenu.js" />
     <Content Include="Scripts\modernizr-2.6.2.js" />
     <Content Include="Scripts\modernizr.js" />
     <Content Include="Scripts\moment.min.js" />

@@ -1,0 +1,155 @@
+﻿@model IndInv.Models.ViewModels.indexViewModel
+@{
+    ViewBag.Title = "Search Results";
+}
+
+<div class="row">
+    <a class="button" href="index">Back</a>
+</div>
+
+<div class="row">
+<table id="indicators">
+    <thead>
+    <tr>
+        <th >
+            @Html.DisplayNameFor(model => model.allIndicators.First().Indicator_CoE_Map.First().CoE.CoE)
+        </th>
+        <th class="hide-for-small-only">
+            @Html.DisplayNameFor(model => model.allIndicators.FirstOrDefault().Area)
+        </th>
+        <th class="hide-for-small-only">
+            @Html.DisplayNameFor(model => model.allIndicators.FirstOrDefault().Indicator_Type)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.allIndicators.FirstOrDefault().Indicator)
+        </th>
+        <th></th>
+    </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var item in Model.allIndicators.OrderBy(x => x.Indicator))
+        {
+            <tr>
+                <td>
+                    <strong>
+                    @foreach (var map in item.Indicator_CoE_Map.Where(x => x.Indicator_ID == item.Indicator_ID))
+                    {
+                        <li style="list-style:none">@Html.DisplayTextFor(modelItem => item.Indicator_CoE_Map.FirstOrDefault().CoE.CoE)</li>
+                    }
+                    </strong>
+                </td>
+                <td class="hide-for-small-only">
+                    @Html.DisplayTextFor(modelItem => item.Area.Area)
+                </td>
+                <td class="hide-for-small-only">
+                    @Html.DisplayTextFor(modelItem => item.Indicator_Type)
+                </td>
+                <td>
+                    <span class="show-for-medium-up">
+                        @Html.DisplayTextFor(modelItem => item.Indicator)
+                    </span>
+                    <div class="show-for-small-only">
+                        <strong>
+                            @Html.DisplayTextFor(modelItem => item.Indicator)
+                        </strong>
+                        <li style="list-style:none"><sub>@Html.DisplayTextFor(modelItem => item.Area.Area)</sub></li>
+                        <li style="list-style:none"><sub>@Html.DisplayTextFor(modelItem => item.Indicator_Type)</sub></li>
+                    </div>
+                </td>
+
+                <td>
+                    <div class="row">
+                    <div class="large-12 small-12 columns" style="text-align:center; padding:2px">@Html.ActionLink("Details", "Details", new { Indicator_ID = item.Indicator_ID }, new { @class = "alert button expand" })</div>
+                    </div>
+                </td>
+            </tr>
+            @*<tr>
+                <td colspan=100% style="text-align:center; padding:0px">
+                    <table style="display:inline-block; width:100%">
+                    <thead>
+                        <tr>
+                        <td style="padding:0px;text-align:center;width:10%"><sub>
+                        @Html.DisplayNameFor(modelItem => item.FY_10_11).ToString().Replace("FY ", "").Replace("/", "")
+                        </sub></td>
+                        <td style="padding:0px;text-align:center;width:10%"><sub>
+                        @Html.DisplayNameFor(modelItem => item.FY_11_12).ToString().Replace("FY ", "").Replace("/", "")
+                        </sub></td>
+                        <td style="padding:0px;text-align:center;width:10%"><sub>
+                        @Html.DisplayNameFor(modelItem => item.FY_12_13).ToString().Replace("FY ", "").Replace("/", "")
+                        </sub></td>
+                        <td style="padding:0px;text-align:center;width:10%"><sub>
+                        @Html.DisplayNameFor(modelItem => item.FY_13_14_Q1).ToString().Replace("FY ", "").Replace("/","")
+                        </sub></td>
+                        <td style="padding:0px;text-align:center;width:10%"><sub>
+                        @Html.DisplayNameFor(modelItem => item.FY_13_14_Q2).ToString().Replace("FY ", "").Replace("/", "")
+                        </sub></td>
+                        <td style="padding:0px;text-align:center;width:10%"><sub>
+                        @Html.DisplayNameFor(modelItem => item.FY_13_14_Q3).ToString().Replace("FY ", "").Replace("/", "")
+                        </sub></td>
+                        <td style="padding:0px;text-align:center;width:10%"><sub>
+                        @Html.DisplayNameFor(modelItem => item.FY_13_14_Q4).ToString().Replace("FY ", "").Replace("/", "")
+                        </sub></td>
+                        <td style="padding:0px;text-align:center;width:10%"><sub>
+                        @Html.DisplayNameFor(modelItem => item.FY_13_14_YTD).ToString().Replace("FY ", "").Replace("/","")
+                        </sub></td>
+                        <td style="padding:0px;text-align:center;width:10%"><sub>
+                        @Html.DisplayNameFor(modelItem => item.Target).ToString().Replace("FY ", "").Replace("/","")
+                        </sub></td>
+                        <td style="padding:0px;text-align:center;width:10%"><sub>
+                        @Html.DisplayNameFor(modelItem => item.Comparator).ToString().Replace("FY ", "").Replace("/","")
+                        </sub></td>
+                        </tr>                    
+                    </thead>
+                    <tbody>
+                        <tr>
+                        <td style="padding:0px;text-align:center;width:10%"><sub>
+                        @Html.DisplayTextFor(modelItem => item.FY_10_11) <sup>@Html.DisplayTextFor(modelItem => item.FY_10_11_Sup)</sup>
+                        </sub></td>
+                        <td style="padding:0px;text-align:center;width:10%"><sub>
+                        @Html.DisplayTextFor(modelItem => item.FY_11_12) <sup>@Html.DisplayTextFor(modelItem => item.FY_11_12_Sup)</sup>
+                        </sub></td>
+                        <td style="padding:0px;text-align:center;width:10%"><sub>
+                        @Html.DisplayTextFor(modelItem => item.FY_12_13) <sup>@Html.DisplayTextFor(modelItem => item.FY_12_13_Sup)</sup>
+                        </sub></td>
+                        <td style="padding:0px;text-align:center;width:10%"><sub>
+                        @Html.DisplayTextFor(modelItem => item.FY_13_14_Q1) <sup>@Html.DisplayTextFor(modelItem => item.FY_13_14_Q1_Sup)</sup>
+                        </sub></td>
+                        <td style="padding:0px;text-align:center;width:10%"><sub>
+                        @Html.DisplayTextFor(modelItem => item.FY_13_14_Q2) <sup>@Html.DisplayTextFor(modelItem => item.FY_13_14_Q2_Sup)</sup>
+                        </sub></td>
+                        <td style="padding:0px;text-align:center;width:10%"><sub>
+                        @Html.DisplayTextFor(modelItem => item.FY_13_14_Q3) <sup>@Html.DisplayTextFor(modelItem => item.FY_13_14_Q3_Sup)</sup>
+                        </sub></td>
+                        <td style="padding:0px;text-align:center;width:10%"><sub>
+                        @Html.DisplayTextFor(modelItem => item.FY_13_14_Q4) <sup>@Html.DisplayTextFor(modelItem => item.FY_13_14_Q4_Sup)</sup>
+                        </sub></td>
+                        <td style="padding:0px;text-align:center;width:10%"><sub>
+                        @Html.DisplayTextFor(modelItem => item.FY_13_14_YTD) <sup>@Html.DisplayTextFor(modelItem => item.FY_13_14_YTD_Sup)</sup>
+                        </sub></td>
+                        <td style="padding:0px;text-align:center;width:10%"><sub>
+                        @Html.DisplayTextFor(modelItem => item.Target) <sup>@Html.DisplayTextFor(modelItem => item.Target_Sup)</sup>
+                        </sub></td>
+                        <td style="padding:0px;text-align:center;width:10%"><sub>
+                        @Html.DisplayTextFor(modelItem => item.Comparator) <sup>@Html.DisplayTextFor(modelItem => item.Comparator_Sup)</sup>
+                        </sub></td>
+                        </tr>
+                    </tbody>
+                    </table>
+                </td>
+            </tr>*@
+        }
+    </tbody>
+</table>
+</div>
+
+<script src="../../Scripts/jquery-1.11.0.min.js"></script>
+<script src="../../Scripts/jquery.tablesorter.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function ($) {
+        $theTable = $('#indicators')
+            .tablesorter();
+
+    });
+
+</script>

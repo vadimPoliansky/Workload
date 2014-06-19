@@ -1,0 +1,139 @@
+﻿@using IndInv.Helpers
+@using IndInv.Models
+@using System.Globalization
+
+<script src="../../Scripts/jquery-1.11.0.min.js"></script>
+<script src="../../Scripts/jquery.handsontable.full.js"></script>
+<link rel="stylesheet" media="screen" href="../../Scripts/jquery.handsontable.full.css"/>
+
+@model IndInv.Models.ViewModels.Indicator_CoE_MapsViewModel
+@using IndInv.Models
+@{
+    ViewBag.Title = "editCoEMaps";
+}
+
+
+<h2>editInventory</h2>
+
+<style type="text/css">
+
+label { display: block; padding:10px; }
+input[type="checkbox"] { display: none; }
+​
+input[type=checkbox].css-checkbox {
+							display:none;
+						}
+
+						input[type=checkbox].css-checkbox + label.css-label {
+							padding-left:23px;
+							height:0px; 
+							display:inline-block;
+							line-height:18px;
+							background-repeat:no-repeat;
+							background-position: 0 0;
+							font-size:10px;
+							vertical-align:text-bottom;
+							cursor:pointer;
+
+						}
+
+						input[type=checkbox].css-checkbox:checked + label.css-label {
+							background-position: 0 -18px;
+						}
+						label.css-label {
+				background-image:url(http://csscheckbox.com/checkboxes/u/csscheckbox_cb8a3cddf56b78d07c1d109787dd4567.png);
+				-webkit-touch-callout: none;
+				-webkit-user-select: none;
+				-khtml-user-select: none;
+				-moz-user-select: none;
+				-ms-user-select: none;
+				user-select: none;
+			}
+
+</style>
+
+<table style="border-collapse:collapse; padding:0; margin:0;">
+
+@foreach (var indicator in Model.allIndicators.OrderBy(x => x.Indicator_ID))
+{
+    <tbody>
+        <tr>
+            <td class="coeMapTable">
+                @Html.DisplayTextFor(x => indicator.Indicator_ID)
+            </td>
+            <td class="coeMapTable">
+                @Html.DisplayTextFor(x => indicator.Indicator)
+            </td>
+            @foreach (var coe in Model.allCoEs.OrderBy(x => x.CoE_Abbr))
+            {
+            string checkID = indicator.Indicator_ID + "_" + coe.CoE_ID;
+            Indicator_CoE_Maps map = Model.allMaps.FirstOrDefault(x => x.Indicator_ID == indicator.Indicator_ID && x.CoE_ID == coe.CoE_ID);
+            if (map != null) { checkID += "_" + map.Map_ID; }
+            <td class="coeMapTable">
+                <input type="checkbox" id="@checkID" value="@coe.CoE_Abbr"  class="css-checkbox"
+                    @{if (Model.allMaps.Any(x => x.Indicator_ID == indicator.Indicator_ID && x.CoE_ID == coe.CoE_ID)){
+                        @Html.Raw("checked");
+                    }}
+                />
+                <label for="@checkID" class="css-label">@coe.CoE_Abbr</label>
+            </td>
+            }
+        </tr>
+    </tbody>
+}
+</table>
+
+<div>
+    @Html.ActionLink("Back to List", "Index")
+</div>
+
+<script type="text/javascript">
+    @foreach (var indicator in Model.allIndicators)
+    {
+        foreach (var coe in Model.allCoEs)
+        {
+            string checkID = indicator.Indicator_ID + "_" + coe.CoE_ID;
+            Indicator_CoE_Maps map = Model.allMaps.FirstOrDefault(x => x.Indicator_ID == indicator.Indicator_ID && x.CoE_ID == coe.CoE_ID);
+            if (map != null) { checkID += "_" + map.Map_ID; }
+            <text>
+            $('#@checkID').change(function () {
+                updateMaps(this.id, this.checked);
+            });
+            </text>
+        }
+    }
+
+    function updateMaps(name, status){
+        var parameterArray = name.split("_");
+        var indicatorID = parameterArray[0];
+        var coeID = parameterArray[1];
+        var mapID;
+        if (!status) {
+            mapID = parameterArray[2];
+        } else {
+            mapID = null;
+        }
+        var maps = []
+        maps.push({
+            Indicator_ID: indicatorID,
+            CoE_ID: coeID,
+            Map_ID: mapID,
+        })
+        var parameters = []
+        parameters.push({
+            allIndicators:null,
+            allCoEs:null,
+            allMaps: maps,
+        })
+        $.ajax({
+            url: this.action,
+            type: 'POST',
+            data: JSON.stringify(parameters),
+            contentType: 'application/json; charset=utf-8',
+            success: function (result) {
+            },
+            error: function (request){
+            }
+        });
+    }
+</script>

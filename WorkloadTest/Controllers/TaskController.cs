@@ -107,11 +107,19 @@ namespace WorkloadTest.Controllers
                             workload = task.Workload == null ? 0 : task.Workload;
                             workloadUnit = workload_units.FirstOrDefault(x => x.Workload_Unit_ID == task.Workload_Unit_ID).Workload_Unit;
                         }
-                        DateTime? taskDateFrom = taskDate != null? Helper.DateMethods.DateAdd(taskDate,
-                                                                    workloadUnit, 
-                                                                    workload != null ? -(workload.Value-1) : 0,
-                                                                    1):
-                                                                    (DateTime?)null;
+                        DateTime? taskDateFrom = null;
+                        if (workload != 0)
+                        {
+                            taskDateFrom = taskDate != null ? Helper.DateMethods.DateAdd(taskDate,
+                                                                        workloadUnit,
+                                                                        workload != null ? -(workload.Value - 1) : 0,
+                                                                        1) :
+                                                                        (DateTime?)null;
+                        }
+                        else
+                        {
+                            taskDateFrom = taskDate;
+                        }
                         InstanceViewModel instance = new InstanceViewModel
                         {
                             Task_ID = task.Task_ID,
@@ -448,7 +456,7 @@ namespace WorkloadTest.Controllers
             Tasks task = db.Tasks.Find(id);
             task.Saved = true;
             db.SaveChanges();
-            return RedirectToAction("Index");
+            return RedirectToAction("Create");
         }
 
         protected override void Dispose(bool disposing)

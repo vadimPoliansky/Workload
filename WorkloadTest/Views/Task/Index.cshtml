@@ -1,28 +1,86 @@
 ﻿@model WorkloadTest.ViewModels.IndexViewModel
 @{
     ViewBag.Title = "Index";
+    ViewBag.allCoes = Model.allCoEs.OrderBy(x => x.CoE);
+    ViewBag.allAnalysts = Model.allAnalysts.OrderBy(x => x.First_Name);
 }
 
-<h2>Index</h2>
-
-<p>
-    <div class="row">
-        @Html.ActionLink("Create New", "Create")
+<div class="row">
+    <div class="small-12 columns">
+<ul class="list" style="list-style: none; margin:0px">
+<li><label><h2>Saved Tasks</h2></label></li>
+@foreach (var task in Model.allTasks.OrderBy(x => x.Analyst == null ? "" : x.Analyst.First_Name).OrderBy(x => x.CoE == null ? "" : x.CoE.CoE).Where(x => x.Saved == true))
+{
+    <div class="block" id="@task.Task_ID" style="margin-left:0px">
+        <li>
+            <div class="row collapse">
+                <div class="small-3 columns" style="font-size: small">
+                    <strong class="coe">@Html.DisplayTextFor(modelItem => task.CoE.CoE)</strong>
+                    <br />
+                    <em class="analyst">@Html.DisplayTextFor(modelIem => task.Analyst.First_Name), @Html.DisplayTextFor(modelIem => task.Analyst.Last_Name)</em>
+                </div>
+                <div class="small-8 columns">
+                    <span class="title" style="font-size: small">@Html.DisplayTextFor(modelItem => task.Description)</span>
+                </div>
+            </div>
+        </li>
     </div>
-</p>
-<p>
-@foreach (var coe in Model.allCoEs)
-{
-    @:<div class="row">
-        @Html.ActionLink("View Tasks for: " + coe.CoE, "taskList", new {coeID = coe.CoE_ID})
-    @:</div>
 }
-</p>
-
-@foreach (var analyst in Model.allAnalysts)
+</ul>
+        </div>
+        <div class="small-12 columns">
+<ul class="list" style="list-style: none; margin:0px">
+<li><label><h2>Unsaved Tasks</h2></label></li>
+@foreach (var task in Model.allTasks.Where(x=>x.Saved == false || x.Saved == null))
 {
-    @:<div class="row">
-        @Html.ActionLink("View Tasks for: " + analyst.First_Name, "taskList", new {analystID = analyst.Analyst_ID})
-    @:</div>
+    <div class="block" id="@task.Task_ID" style="margin-left:0px">
+        <li>
+            <div class="row collapse">
+                <div class="small-3 columns" style="font-size: small">
+                    <strong class="coe">@Html.DisplayTextFor(modelItem => task.CoE.CoE)</strong>
+                    <br />
+                    <em class="analyst">@Html.DisplayTextFor(modelIem => task.Analyst.First_Name)</em>
+                </div>
+                <div class="small-8 columns">
+                    <span class="title" style="font-size: small">@Html.DisplayTextFor(modelItem => task.Description)</span>
+                </div>
+            </div>
+        </li>
+    </div>
 }
+</ul>
+    </div>
+    </div>
 
+<script src='../../Scripts/jquery-1.11.1.min.js'></script>
+<script type="text/javascript">
+    $(document).ready(function () {
+
+        $('.deleteButton').on('click', function (e) {
+            var id = $(this).attr('deleteid');
+            $(id).remove();
+        });
+
+        $('.block').on('click', function () {
+            window.location.href = "/task/create?id=" + $(this).attr("id");
+        });
+    });
+</script>
+
+<style>
+    .block {
+        border-top:1px solid slategray;
+        padding-bottom:5%;
+    }
+
+    .block:hover {
+      background: #3cb0fd;
+      background-image: -webkit-linear-gradient(top, #3cb0fd, #3498db);
+      background-image: -moz-linear-gradient(top, #3cb0fd, #3498db);
+      background-image: -ms-linear-gradient(top, #3cb0fd, #3498db);
+      background-image: -o-linear-gradient(top, #3cb0fd, #3498db);
+      background-image: linear-gradient(to bottom, #3cb0fd, #3498db);
+      text-decoration: none;
+    }
+
+</style>

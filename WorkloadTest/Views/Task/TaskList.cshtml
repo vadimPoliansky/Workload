@@ -2,6 +2,8 @@
 
 @{
     ViewBag.Title = "TaskList";
+    ViewBag.allCoes = Model.allCoEs.OrderBy(x => x.CoE);
+    ViewBag.allAnalysts = Model.allAnalysts.OrderBy(x => x.First_Name);    
 }
 
 <!DOCTYPE html>
@@ -17,13 +19,9 @@
 
 <style>
 
-<style>
-
 	body {
-		margin-top: 40px;
 		text-align: center;
 		font-size: 14px;
-		font-family: "Lucida Grande",Helvetica,Arial,Verdana,sans-serif;
 	}
 		
 	#wrap {
@@ -68,30 +66,36 @@
 
 	#calendar {
 		float: right;
-		width: 900px;
+		width: 70%;
 	}
 
-</style>
+    .fc-header {
+        border:0px !important;
+        margin:0px;
+    }
+
+    .fc-header-right {
+        vertical-align:bottom !important;
+    }
+
+    .fc-button {
+        background-image:none !important;
+    }
+
+    .fc-day-number {
+        font-size:large !important;
+    }
+
+    .fc-day {
+        border:0 !important;
+    }
 
 </style>
 </head>
 <body>
-    <div class="large-2 columns">
-            		<div id='external-events'>
-			<div class='external-event'>New Task</div>
-            <div class='external-event'>My Task 1</div>
-			<div class='external-event'>My Task 2</div>
-			<div class='external-event'>My Task 3</div>
-			<div class='external-event'>My Task 4</div>
-			<div class='external-event'>My Task 5</div>
-			<p>
-				<input type='checkbox' id='drop-remove' />
-				<label for='drop-remove'>remove after drop</label>
-			</p>
-		</div>
-    </div>
-    <div class ="large-8 columns">
-    <div id='calendar'></div>
+    <br />
+    <div class ="small-10 columns">
+    <div style="margin-right:10%"id='calendar'></div>
     
         @{string[] colors = {
             "RGB(14, 0, 144)",
@@ -103,13 +107,13 @@
             "RGB(51, 154, 0)",
         };}
     </div>
-    <div class="large-2 columns">
+    <div class="small-2 columns">
     <input class="button" id="switchColor" value="Color by CoE"></input>
     <div id="coeColors">
     @{
         var k =0;
         foreach(var coe in Model.allCoEs){
-            <div class="row"><div class="large-12 columns large-centered">
+            <div class="row"><div class="small-12 columns small-centered">
             <ul style="color:white;background-color:@colors[k]" >@coe.CoE</ul>
             </div></div>
             k++;
@@ -121,7 +125,7 @@
 
         var l =0;
         foreach(var analyst in Model.allAnalysts){
-            <div class="row"><div class="large-12 columns large-centered">
+            <div class="row"><div class="small-12 columns small-centered">
             <ul style="color:white;background-color:@colors[l]" >@analyst.Last_Name,@analyst.First_Name</ul>
             </div></div>
             l++;
@@ -136,30 +140,6 @@
     <script>
 
         $(document).ready(function ($) {
-
-            /* initialize the external events
------------------------------------------------------------------*/
-	
-            $('#external-events div.external-event').each(function() {
-		
-                // create an Event Object (http://arshaw.com/fullcalendar/docs/event_data/Event_Object/)
-                // it doesn't need to have a start or end
-                var eventObject = {
-                    title: $.trim($(this).text()) // use the element's text as the event title
-                };
-			
-                // store the Event Object in the DOM element so we can get to it later
-                $(this).data('eventObject', eventObject);
-			
-                // make the event draggable using jQuery UI
-                $(this).draggable({
-                    zIndex: 999,
-                    revert: true,      // will cause the event to go back to its
-                    revertDuration: 0  //  original position after the drag
-                });
-			
-            });
-	
 
             function getDate(date, format) {
                 if (date !== ""){
@@ -277,28 +257,6 @@
                     url = url.replace( "XXX", calEvent.task_id);
                     window.open(url, "popupWindow", "width=600,height=600,scrollbars=yes");
                 },
-                droppable: true, // this allows things to be dropped onto the calendar !!!
-                drop: function(date) { // this function is called when something is dropped
-			
-                    // retrieve the dropped element's stored Event Object
-                    var originalEventObject = $(this).data('eventObject');
-				
-                    // we need to copy it, so that multiple events don't have a reference to the same object
-                    var copiedEventObject = $.extend({}, originalEventObject);
-				
-                    // assign it the date that was reported
-                    copiedEventObject.start = date;
-				
-                    // render the event on the calendar
-                    // the last `true` argument determines if the event "sticks" (http://arshaw.com/fullcalendar/docs/event_rendering/renderEvent/)
-                    $('#calendar').fullCalendar('renderEvent', copiedEventObject, true);
-				
-                    // is the "remove after drop" checkbox checked?
-                    if ($('#drop-remove').is(':checked')) {
-                        // if so, remove the element from the "Draggable Events" list
-                        $(this).remove();
-                    }
-                },
             });
 
             function updateDrop(event, resize) {
@@ -317,8 +275,12 @@
                     var newDate;
                     newDate = event.end == null ? event.start.toUTCString() : event.end.toUTCString();
                     if (resize) {
-                        workload = new Date(event.end - event.start);
-                        workloadDays = workload / 1000 / 60 / 60 / 24 + 1;
+                        if (event.end !== null){
+                            workload = new Date(event.end - event.start);
+                            workloadDays = workload / 1000 / 60 / 60 / 24 + 1;
+                        } else {
+                            workloadDays = null;
+                        }
                     }
                     var parameters = [];
                     parameters.push({
@@ -337,7 +299,6 @@
                         data: JSON.stringify(parameters),
                         contentType: 'application/json; charset=utf-8',
                         success: function (result) {
-
                         },
                         error: function (request) {
                         }

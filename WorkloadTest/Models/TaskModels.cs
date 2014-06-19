@@ -39,6 +39,8 @@ namespace WorkloadTest.Models
         public bool? Saved { get; set; } 
 
         public virtual ICollection<Paths> Path { get; set; }
+        public virtual Analysts Analyst { get; set; }
+        public virtual CoEs CoE { get; set; }
     }
 
     public class Exceptions

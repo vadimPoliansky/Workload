@@ -1,0 +1,36 @@
+﻿@model IndInv.Models.LocalPasswordModel
+@{
+    ViewBag.Title = "Manage Account";
+}
+
+<hgroup class="title">
+    <h1>@ViewBag.Title.</h1>
+</hgroup>
+
+<p class="message-success">@ViewBag.StatusMessage</p>
+
+<p>You're logged in as <strong>@User.Identity.Name</strong>.</p>
+
+@if (ViewBag.HasLocalPassword)
+{
+    @Html.Partial("_ChangePasswordPartial")
+}
+else
+{ 
+    @Html.Partial("_SetPasswordPartial")
+}
+
+<section id="externalLogins">
+    @Html.Action("RemoveExternalLogins")
+
+    <h3>Add an external login</h3>
+    @Html.Action("ExternalLoginsList", new { ReturnUrl = ViewBag.ReturnUrl })
+</section>
+
+<script src="../../Scripts/jquery-1.11.0.min.js"></script>
+<script src="../../Scripts/jquery-migrate.min.js"></script>
+<script src="../../Scripts/jquery.unobtrusive-ajax.min.js"></script>
+<script src="../../Scripts/jquery.validate.min.js"></script>
+<script src="../../Scripts/jquery.validate.unobtrusive.min.js"></script>
+<script src="../../Scripts/jquery.validate-vsdoc.js"></script>
+<script src="../../Scripts/jquery-migrate.min.js"></script>

@@ -6,51 +6,95 @@
         <link href="~/favicon.ico" rel="shortcut icon" type="image/x-icon" />
         <meta name="viewport" content="width=device-width" />
 
+        <link href='http://fonts.googleapis.com/css?family=Open+Sans+Condensed:300,300italic,700&subset=latin,cyrillic-ext,latin-ext,cyrillic' rel='stylesheet' type='text/css'>
+        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.0.1/css/font-awesome.min.css">
+
         <link href='../../Content/foundation.css' rel='stylesheet' />
         <script src='../../Scripts/modernizr.js'></script>
 
         @Scripts.Render("~/bundles/modernizr")
     </head>
-    <body>
-        <header>
-            <div class="content-wrapper">
-                <div class="float-left">
-                </div>
-                <div class="float-right">
-                    <!--section id="login">
-                        @Html.Partial("_LoginPartial")
-                    </!--section-->
-                    <nav>
-                        <ul id="menu">
-                            <!--
-                            <li>@Html.ActionLink("Home", "Index", "Home")</li>
-                            <li>@Html.ActionLink("About", "About", "Home")</li>
-                            <li>@Html.ActionLink("Contact", "Contact", "Home")</li>
-                                -->
-                        </ul>
-                    </nav>
-                </div>
-            </div>
-        </header>
-        <div id="body">
-            @RenderSection("featured", required: false)
-            <section class="content-wrapper main-content clear-fix">
-                @RenderBody()
-            </section>
-        </div>
-        <footer>
-            <div class="content-wrapper">
-                <div class="float-left">
-                    <!--p>&copy; @DateTime.Now.Year - My ASP.NET MVC Application</!--p-->
-                </div>
-            </div>
-        </footer>
+<body>
 
-        <script src='../../Scripts/jquery-1.11.1.min.js'></script>
-        <script src='../../Scripts/foundation.min.js'></script>
-        <script> $(document).foundation(); </script>
-        @Scripts.Render("~/bundles/jquery")
-        @RenderSection("scripts", required: false)
-    </body>
+    <div class="off-canvas-wrap" data-offcanvas>
+        <div class="inner-wrap">
+            <nav class="tab-bar">
+                <section class="left-small"><a class="left-off-canvas-toggle menu-icon"><span></span></a></section>
+            </nav>
+            <aside class="left-off-canvas-menu">
+                <ul class="off-canvas-list">
+                    <li><label><a id="create"><i class="fa fa-plus-square"></i> Add</a></label></li>
+                    <li><label><a id="list"><i class="fa fa-list"></i> List</a></label></li>
+                    <li><label><a class="filter" field="" filterid="" href="#"><i class="fa fa-calendar"></i> Calendar</a></label></li>
+                    <li><label><i class="fa fa-calendar"></i> Filter By CoE</label></li>
+                    @foreach (var coe in ViewBag.allCoes)
+                    {
+                        <li class="canvasItems"><a class="filter" field="coeID" filterid="@coe.CoE_ID" href="#"><i class="fa fa-filter"></i> @coe.CoE_Abbr</a></li>
+                    }
+                    <li><label><i class="fa fa-calendar"></i> Filter By Analyst</label></li>
+                    @foreach (var analyst in ViewBag.allAnalysts)
+                    {
+                        <li class="canvasItems"><a class="filter" field="analystID" filterid="@analyst.Analyst_ID" href="#"><i class="fa fa-filter"></i> @analyst.First_Name, @analyst.Last_Name</a></li>
+                    }
+                </ul>
+            </aside>
+            <div id="body">
+                @RenderSection("featured", required: false)
+                <section class="content-wrapper main-content clear-fix">
+                    @RenderBody()
+                </section>
+            </div>
+            <a class="exit-off-canvas"></a>
+        </div>
+    </div>
+
+    <script src='../../Scripts/jquery-1.11.1.min.js'></script>
+    <script src='../../Scripts/foundation.min.js'></script>
+    <script src='../../Scripts/foundation.offcanvas.js'></script>
+    <script> $(document).foundation(); </script>
+    @Scripts.Render("~/bundles/jquery")
+    @RenderSection("scripts", required: false)
+</body>
 </html>
+
+<script>
+
+    $(document).ready(function () {
+
+        $(".filter").on("click", function () {
+            var field = $(this).attr("field");
+            var id = $(this).attr("filterid");
+            window.location.href = "/Task/taskList?" + field + "=" + id;
+        });
+
+        $("#create").on("click", function () {
+            window.location.href = "/Task/create"
+        });
+
+        $("#list").on("click", function () {
+            window.location.href = "/Task"
+        });
+
+    });
+
+</script>
+
+<style>
+    ul {
+        padding:0px;
+        margin:0px;
+    }
+    .canvasItems {
+        background-color:#0094ff !important;
+        padding-left:10px;
+    }
+
+    .left-off-canvas-menu {
+        background-color:#0078cf !important;
+    }
+
+    ul.off-canvas-list li a {
+        padding:0px;
+    }
+</style>
 
