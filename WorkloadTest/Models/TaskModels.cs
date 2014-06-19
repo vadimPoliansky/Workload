@@ -41,6 +41,7 @@ namespace WorkloadTest.Models
         public virtual ICollection<Paths> Path { get; set; }
         public virtual Analysts Analyst { get; set; }
         public virtual CoEs CoE { get; set; }
+        public virtual Periods Period { get; set; }
     }
 
     public class Exceptions

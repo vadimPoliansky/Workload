@@ -1,0 +1,299 @@
+﻿@model WorkloadTest.ViewModels.TaskListViewModel
+
+@{
+    ViewBag.Title = "editTable";
+    ViewBag.allCoes = Model.allCoEs;
+    ViewBag.allAnalysts = Model.allAnalysts;
+}
+<link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
+<div class="buttonGroup">
+Filter By:
+@foreach (var analyst in Model.allAnalysts.Where(x=>x.First_Name != null))
+{
+    <button class="filterButton" filterID ="@analyst.Analyst_ID" field="Analyst_ID" style="height:20px; padding:0">@analyst.First_Name</button>
+}
+</div>
+
+<div id="dataTable" style="overflow: scroll"></div>
+
+<link href="~/Content/ui-lightness/jquery-ui-1.10.4.min.css" rel="stylesheet" />
+<script type="text/javascript" src="~/Scripts/jquery-1.10.2.js"></script>
+<script type="text/javascript" src="~/Scripts/jquery-ui-1.10.4.min.js"></script>
+<script type="text/javascript" src="../../Scripts/jquery.handsontable.full.js"></script>
+<link rel="stylesheet" media="screen" href="../../Scripts/jquery.handsontable.full.css" />
+
+
+<script type="text/javascript">
+
+    $('document').ready(function($){
+        
+        
+        $("#dialog").dialog({
+            autoOpen: false,
+            modal: true,
+            buttons: {
+                "OK":function() {},
+                "Cancel": function() { $(this).dialog("close"); }
+            }
+        }
+            );
+
+        // Bind to the click event for my button and execute my function
+        $("#test").click(function(){
+            $("#dialog").dialog("open");
+        });
+
+        $(".filterButton").on("click",function(){
+            var filterID = $(this).attr("filterID");
+            var field= $(this).attr("field");
+
+            var value = ('' + filterID).toLowerCase(), row, col, r_len, c_len, td;
+            var example = $example1
+            var datasrch = jQuery.makeArray(values);
+            var searcharray = [];
+            if (value) {
+                for (row = 0, r_len = datasrch.length; row < r_len; row++) {
+                    jQuery.each(datasrch[row], function (name, currValue) {
+                        if(('' + currValue).toLowerCase().indexOf(value) > -1 && name === field){
+                            searcharray.push(datasrch[row]);
+                            return false;
+                        }
+                    });
+                }
+                example.handsontable('loadData', searcharray);
+            }
+            else {
+                example.handsontable('loadData', values);
+            }
+
+        });
+
+        var values = @Html.Raw(Json.Encode(Model.allTasks));
+
+        var maxed = false
+            , resizeTimeout
+            , availableWidth
+            , availableHeight
+            , $window = $(window)
+            , $example1 = $('#dataTable')
+
+        var calculateSize = function () {
+            var offset = $example1.offset();
+            availableWidth = $window.width() - offset.left + $window.scrollLeft();
+            availableHeight = $window.height() - offset.top + $window.scrollTop();
+        };
+        $window.on('resize', calculateSize);
+
+        maxed = true;
+        $example1.handsontable('render');
+        $example1.handsontable({
+            data: values,
+            startRows: 1,
+            startCols: 1,
+            rowHeaders: true,
+            colHeaders: true,
+            strechH: 'all',
+            strechW: 'all',
+            scrollH: 'auto',
+            scrollV: 'auto',
+            colWidths: [100, 100, 100, 200, 200, 200, 200, 100, 100, 100, 300, 300, 300, 300, 300, 300, 300, 300, 300, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 1000, 1000, 1000],
+            width: function () {
+                if (maxed && availableWidth === void 0) {
+                    calculateSize();
+                }
+                return maxed ? availableWidth * 0.98 : 300;
+            },
+            height: function () {
+                if (maxed && availableHeight === void 0) {
+                    calculateSize();
+                }
+                return maxed ? availableHeight * 0.98 : 300;
+            },
+            fixedRowsTop: 0,
+            fixedColumnsLeft: 1,
+            manualColumnResize: true,
+            minSpareRows: 0,
+            contextMenu: true,
+            colHeaders: [
+                "ID",
+                "CoE ",
+                "Analyst",
+                "Priority",
+                "Description",
+                "Purpose",
+                "Requestor",
+                "Workload",
+                "Workload_Unit_ID",
+                "Data_Source",
+                "Comment",
+                "Report_Location",
+                "Request_Date",
+                "Start_Date",
+                "Routine",
+                "Repeat Every",
+                "Period",
+                "For:",
+            ],
+            columns: [
+                { data: "Task_ID" },
+                { data: "CoE", type:'autocomplete', strict: true, 
+                    source: function (query, process) {
+                        $.ajax({
+                            url: 'getCoEs',
+                            success: function (response) {
+                                console.log("response", response);
+                                process(response);
+                            }
+                        });
+                    }
+                },
+                { data: "Analyst", type:'autocomplete', strict: true, 
+                    source: function (query, process) {
+                        $.ajax({
+                            url: 'getAnalysts',
+                            success: function (response) {
+                                console.log("response", response);
+                                process(response);
+                            }
+                        });
+                    }
+                },
+                { data: "Priority" },
+                { data: "Description" },
+                { data: "Purpose" },
+                { data: "Requestor" },
+                { data: "Workload" },
+                { data: "Workload_Unit_ID" },
+                { data: "Data_Source" },
+                { data: "Comment"},
+                { data: "Report_Location" },
+                { data: "Request_Date" },
+                { data: "Start_Date"},
+                { data: "Routine" },
+                { data: "Frequency" },
+                { data: "Period", type:'autocomplete', strict: true, 
+                    source: function (query, process) {
+                        $.ajax({
+                            url: 'getPeriods',
+                            success: function (response) {
+                                console.log("response", response);
+                                process(response);
+                            }
+                        });
+                    }
+                },
+                { data: "Count"},
+            ],
+            afterChange: function (change, source) {
+                if (source === 'loadData') {
+                    return;
+                } else {
+                    for (var i = 0; i < change.length; ++i) {
+                        updateIndicator(change, i);
+                    }
+                }
+            },
+            afterCreateRow: function(index, amount){
+                addTask(index);
+            },
+            beforeRemoveRow : function(index, amount){
+                deleteTask( $example1.handsontable('getDataAtCell',index,0));
+            },
+        });
+
+        function updateIndicator(change, i){
+            var changedRow = change[i][0]
+            var changedParameter = change[i][1];
+            var changedValue = change[i][3];
+            if (changedParameter !== "Task_ID"){
+                $.get('@Url.Action("/editTable")', {taskID : $example1.handsontable('getDataAtCell',change[i][0],0)}, function (data) {
+            var newValue = data;
+            var parameters = []
+            parameters.push({
+                Task_ID: (changedParameter=="Task_ID" ?  parseInt(changedValue) : newValue[0].Task_ID),
+                Routine: (changedParameter=="Routine" ? parseInt(changedValue): newValue[0].Routine),
+                Priority:(changedParameter=="Priority" ? changedValue : newValue[0].Priority),
+                Description:(changedParameter=="Description" ? changedValue : newValue[0].Description),
+                Purpose:(changedParameter=="Purpose" ? changedValue : newValue[0].Purpose),
+                Requestor:(changedParameter=="Requestor" ? changedValue : newValue[0].Requestor),
+                Workload:(changedParameter=="Workload" ? changedValue : newValue[0].Workload),
+                Workload_Unit_ID:(changedParameter=="Workload_Unit_ID" ? changedValue : newValue[0].Workload_Unit_ID),
+                Comment:(changedParameter=="Comment" ? changedValue : newValue[0].Comment),
+                Data_Source:(changedParameter=="Data_Source" ? changedValue : newValue[0].Data_Source),
+                Report_Location:(changedParameter=="Report_Location" ? changedValue : newValue[0].Report_Location),
+                Start_Date:(changedParameter=="Start_Date" ? changedValue : newValue[0].Start_Date),
+                Request_Date:(changedParameter=="Request_Date" ? changedValue : newValue[0].Request_Date),
+                Count:(changedParameter=="Count" ? changedValue : newValue[0].Count),
+                Frequency:(changedParameter=="Frequency" ? changedValue : newValue[0].Frequency),
+                Period_ID:(changedParameter=="Period_ID" ? changedValue : newValue[0].Period_ID),
+                User_Added:(changedParameter=="User_Added" ? changedValue : newValue[0].User_Added),
+                Date_Added:(changedParameter=="Date_Added" ? changedValue : newValue[0].Date_Added),
+                Saved:(changedParameter=="Saved" ? changedValue : newValue[0].Saved),
+                Analyst:(changedParameter=="Analyst" ? changedValue : newValue[0].Analyst),
+                CoE:(changedParameter=="CoE" ? changedValue : newValue[0].CoE),
+            })
+            $.ajax({
+                url: this.action,
+                type: 'POST',
+                data: JSON.stringify(parameters),
+                contentType: 'application/json; charset=utf-8',
+                success: function (result) {
+                },
+                error: function (request){
+                }
+            });
+        });
+    }
+}
+
+        function addTask(index){
+            $.ajax({
+                url: 'addTask',
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+                success: function (result) {
+                    $example1.handsontable('setDataAtRowProp',index, "Task_ID", result.Task_ID);
+                    $example1.handsontable('setDataAtRowProp',index, "Routine", "false");
+                    $example1.handsontable('setDataAtRowProp',index, "Priority", "false");
+                },
+                error: function (request){
+                }
+            });
+        };
+
+        function deleteTask(taskID){
+            $.ajax({
+                url: 'deleteTask',
+                type: 'POST',
+                data: JSON.stringify({taskID: taskID}),
+                contentType: 'application/json; charset=utf-8',
+                success: function (result) {
+                },
+                error: function (request){
+                }
+            });
+        };
+
+
+
+    });
+
+</script>
+
+<style>
+
+    .wtSpreader {
+        height:500px !important;
+    }
+
+
+
+    .buttonGroup {
+        padding-top:5px;
+    }
+
+    .inner-wrap {
+        padding-bottom:10px;
+    }
+
+</style>

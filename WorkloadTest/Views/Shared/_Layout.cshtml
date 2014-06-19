@@ -25,14 +25,15 @@
                 <ul class="off-canvas-list">
                     <li><label><a id="create"><i class="fa fa-plus-square"></i> Add</a></label></li>
                     <li><label><a id="list"><i class="fa fa-list"></i> List</a></label></li>
+                    <li><label><a id="table"><i class="fa fa-table"></i> Table</a></label></li>
                     <li><label><a class="filter" field="" filterid="" href="#"><i class="fa fa-calendar"></i> Calendar</a></label></li>
                     <li><label><i class="fa fa-calendar"></i> Filter By CoE</label></li>
-                    @foreach (var coe in ViewBag.allCoes)
+                    @foreach (var coe in ViewBag.allCoes ?? Enumerable.Empty<string>())
                     {
                         <li class="canvasItems"><a class="filter" field="coeID" filterid="@coe.CoE_ID" href="#"><i class="fa fa-filter"></i> @coe.CoE_Abbr</a></li>
                     }
                     <li><label><i class="fa fa-calendar"></i> Filter By Analyst</label></li>
-                    @foreach (var analyst in ViewBag.allAnalysts)
+                    @foreach (var analyst in ViewBag.allAnalysts ?? Enumerable.Empty<string>())
                     {
                         <li class="canvasItems"><a class="filter" field="analystID" filterid="@analyst.Analyst_ID" href="#"><i class="fa fa-filter"></i> @analyst.First_Name, @analyst.Last_Name</a></li>
                     }
@@ -75,6 +76,11 @@
             window.location.href = "/Task"
         });
 
+
+        $("#table").on("click", function () {
+            window.location.href = "/Task/editTable"
+        });
+
     });
 
 </script>
@@ -95,6 +101,7 @@
 
     ul.off-canvas-list li a {
         padding:0px;
+        border:0px;
     }
 </style>
 

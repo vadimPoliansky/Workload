@@ -156,6 +156,181 @@ namespace WorkloadTest.Controllers
         }
 
         [HttpGet]
+        public ActionResult editTable(string taskID)
+        {
+            var viewModelItems = db.Tasks.Where(x => x.Saved == true).ToList();
+            var viewModelTasks = viewModelItems.Select(x => new TaskViewModel
+            {
+                Task_ID= x.Task_ID,
+                Routine= x.Routine,
+                Priority= x.Priority,
+
+                CoE_ID= x.CoE_ID,
+                Analyst_ID= x.Analyst_ID,
+
+                Description= x.Description,
+                Purpose = x.Purpose,
+                Requestor= x.Requestor,
+                Workload= x.Workload,
+                Workload_Unit_ID= x.Workload_Unit_ID,
+                Comment= x.Comment,
+
+                Data_Source= x.Data_Source,
+                Report_Location= x.Report_Location,
+
+                Start_Date = x.Start_Date != null ? x.Start_Date.Value.ToString("yyyy-MM-dd") : "",
+                Request_Date = x.Request_Date != null ? x.Request_Date.Value.ToString("yyyy-MM-dd"): "",
+
+                Count= x.Count,
+                Frequency= x.Frequency,
+                Period_ID= x.Period_ID,
+
+                User_Added= x.User_Added,
+                Date_Added= x.Date_Added != null ? x.Date_Added.Value.ToString("yyyy-MM-dd"): "",
+
+                Saved= x.Saved,
+
+                Analyst= x.Analyst != null ? x.Analyst.First_Name : "",
+                CoE= x.CoE != null? x.CoE.CoE : "",
+                Period = x.Period != null? x.Period.Period_Name : "",
+            }).ToList();
+            var viewModel = new TaskListViewModel
+            {
+                allTasks = viewModelTasks,
+                allCoEs = db.CoEs.ToList(),
+                allAnalysts = db.Analysts.ToList(),
+            };
+            if (Request.IsAjaxRequest())
+            {
+                return Json(viewModel.allTasks.Where(x => x.Task_ID.ToString().Contains(taskID == null ? "" : taskID)), JsonRequestBehavior.AllowGet);
+            }
+            else
+            {
+                return View(viewModel);
+            }
+
+        }
+
+        [HttpPost]
+        public JsonResult editTable(IList<TaskViewModel> taskChange)
+        {
+            var taskID = taskChange[0].Task_ID;
+            string analyst = taskChange[0].Analyst;
+            string coe = taskChange[0].CoE;
+            string period = taskChange[0].Period;
+            int? analystID = null;
+            int? coeID = null;
+            int? periodID = null;
+            if (taskChange[0].Analyst != null && taskChange[0].Analyst != "")
+            {
+                analystID = db.Analysts.Any(x => x.First_Name == analyst) ?  db.Analysts.FirstOrDefault(x => x.First_Name == analyst).Analyst_ID : (int?)null;
+            }
+
+            if (taskChange[0].CoE != null && taskChange[0].CoE != "")
+            {
+                coeID = db.CoEs.Any(x => x.CoE == coe) ? db.CoEs.FirstOrDefault(x => x.CoE == coe).CoE_ID : (int?)null;
+            }
+            if (taskChange[0].Period != null && taskChange[0].Period != "")
+            {
+                periodID = db.Periods.Any(x => x.Period == period) ? db.Periods.FirstOrDefault(x => x.Period == period).Period_ID : (int?)null;
+            }
+            if (db.Tasks.Any(x => x.Task_ID == taskID))
+            {
+                if (ModelState.IsValid)
+                {
+                    var newTask = new Tasks
+                    {
+                        Task_ID = taskChange[0].Task_ID,
+                        Routine = taskChange[0].Routine,
+                        Priority = taskChange[0].Priority,
+
+                        //CoE_ID= taskChange[0].CoE_ID,
+                        //Analyst_ID= taskChange[0].Analyst_ID,
+
+                        Description = taskChange[0].Description,
+                        Purpose = taskChange[0].Purpose,
+                        Requestor = taskChange[0].Requestor,
+                        Workload = taskChange[0].Workload,
+                        Workload_Unit_ID = taskChange[0].Workload_Unit_ID,
+                        Comment = taskChange[0].Comment,
+
+                        Data_Source = taskChange[0].Data_Source,
+                        Report_Location = taskChange[0].Report_Location,
+
+                        Start_Date = taskChange[0].Start_Date != null ? DateTime.ParseExact(taskChange[0].Start_Date, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture) : (DateTime?)null,
+                        Request_Date = taskChange[0].Request_Date != null ? DateTime.ParseExact(taskChange[0].Request_Date, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture) : (DateTime?)null,
+
+                        Count = taskChange[0].Count,
+                        Frequency = taskChange[0].Frequency,
+                        Period_ID = periodID ?? null,
+
+                        User_Added = taskChange[0].User_Added,
+                        Date_Added = taskChange[0].Date_Added != null ? DateTime.ParseExact(taskChange[0].Date_Added, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture) : (DateTime?)null,
+
+                        Saved = taskChange[0].Saved,
+
+                        Analyst_ID = analystID ?? null,
+                        CoE_ID = coeID ?? null,
+
+                    };
+
+                    db.Entry(newTask).State = EntityState.Modified;
+                    db.SaveChanges();
+                    return Json("",JsonRequestBehavior.AllowGet);
+                }
+                return Json("", JsonRequestBehavior.AllowGet);
+            }
+            else
+            {
+                if (ModelState.IsValid)
+                {
+                    var newTask = new Tasks();
+                    db.Tasks.Add(newTask);
+                    db.SaveChanges();
+                    return Json(newTask.Task_ID, JsonRequestBehavior.AllowGet);
+                }
+                return Json("", JsonRequestBehavior.AllowGet);
+           }
+
+        }
+
+        [HttpPost]
+        public JsonResult addTask()
+        {
+            var newTask = new Tasks();
+            newTask.Saved = true;
+            db.Tasks.Add(newTask);
+            db.SaveChanges();
+            return Json(newTask, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpPost]
+        public void deleteTask(int taskID)
+        {
+            Tasks tasks = db.Tasks.FirstOrDefault(x=>x.Task_ID == taskID);
+            db.Tasks.Remove(tasks);
+            db.SaveChanges();
+        }
+
+        [HttpGet]
+        public JsonResult getCoEs()
+        {
+            return Json(db.CoEs.Select(x=>x.CoE.ToLower()).ToList(), JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpGet]
+        public JsonResult getPeriods()
+        {
+            return Json(db.Periods.Select(x => x.Period_Name.ToLower()).ToList(), JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpGet]
+        public JsonResult getAnalysts()
+        {
+            return Json(db.Analysts.Select(x => x.First_Name.ToLower()).ToList(), JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpGet]
         public JsonResult instances(int Task_ID, DateTime Start_Date, int Frequency, int Period_ID, int Count)
         {
             List<RecurrenceViewModel> viewModel = new List<RecurrenceViewModel>();
