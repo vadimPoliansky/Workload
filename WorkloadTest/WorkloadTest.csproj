@@ -301,6 +301,9 @@
     <Content Include="App_Data\frontPage.docx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Views\Task\coverPage.docx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <None Include="Scripts\jquery-1.8.2.intellisense.js" />
     <Content Include="App_Data\logoOPEO.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -396,7 +399,7 @@
     <Content Include="Views\Task\editTable.cshtml" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Docs\" />
+    <Folder Include="Views\DocOutput\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />

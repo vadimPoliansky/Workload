@@ -429,8 +429,8 @@
                 type: 'POST',
                 data: JSON.stringify(parameters),
                 contentType: 'application/json; charset=utf-8',
-                success: function (filename) {
-                    window.open("/../../App_Data/" + filename);
+                success: function (result) {
+                    window.open(result);
                 },
                 error: function (request) {
                 }
