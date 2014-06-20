@@ -395,7 +395,9 @@
     <Content Include="Views\Task\EditException.cshtml" />
     <Content Include="Views\Task\editTable.cshtml" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Docs\" />
+  </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />
   </ItemGroup>

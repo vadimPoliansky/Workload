@@ -547,10 +547,10 @@ namespace WorkloadTest.Controllers
                 //Response.End();
                 //return Json(Response, JsonRequestBehavior.AllowGet);
                 var filename = "coverPage" + DateTime.Now.ToString("hmmss") + ".docx";
-                var filenamePath = Server.MapPath("~/App_Data") + "/" + filename;
+                var filenamePath = Server.MapPath("~/Docs") + "/" + filename;
                 combined.SaveAs(filenamePath);
 
-                return Json(filenamePath, JsonRequestBehavior.AllowGet);
+                return Json("/../../Docs/" + filename, JsonRequestBehavior.AllowGet);
                 //return File(Response.ToString(), "application/x-ms-excel", "test.docx");
             }
 
