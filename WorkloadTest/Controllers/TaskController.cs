@@ -484,7 +484,7 @@ namespace WorkloadTest.Controllers
             return View(tasks);
         }
 
-        public JsonResult createFrontPage(IList<InstanceListViewModel> instanceList)
+        public void createFrontPage(IList<InstanceListViewModel> instanceList)
         {
             var analystID = instanceList[0].allInstances.FirstOrDefault().Analyst_ID;
             var analyst = db.Analysts.FirstOrDefault(x=>x.Analyst_ID == analystID);
@@ -546,10 +546,10 @@ namespace WorkloadTest.Controllers
                 //ms.WriteTo(Response.OutputStream);
                 //Response.End();
                 //return Json(Response, JsonRequestBehavior.AllowGet);
-                var filenamePath = HttpContext.Server.MapPath("~/Views/Task/coverPage.docx");
+                var filenamePath = HttpContext.Server.MapPath("~/DocOutput/coverPage.docx");
                 combined.SaveAs(filenamePath);
 
-                return Json(filenamePath, JsonRequestBehavior.AllowGet);
+                //return Json("~/DocOutput/coverPage.docx", JsonRequestBehavior.AllowGet);
                 //return File(Response.ToString(), "application/x-ms-excel", "test.docx");
             }
 

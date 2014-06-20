@@ -458,4 +458,4 @@ C:\AspNet\WorkloadTestV3\WorkloadTestV2\WorkloadTest\bin\zh-Hant\System.Spatial.
 C:\AspNet\WorkloadTestV3\WorkloadTestV2\WorkloadTest\obj\Debug\WorkloadTest.csprojResolveAssemblyReference.cache
 C:\AspNet\WorkloadTestV3\WorkloadTestV2\WorkloadTest\obj\Debug\WorkloadTest.dll
 C:\AspNet\WorkloadTestV3\WorkloadTestV2\WorkloadTest\obj\Debug\WorkloadTest.pdb
-C:\AspNet\WorkloadTestV3\WorkloadTestV2\WorkloadTest\bin\Views\Task\coverPage.docx
+C:\AspNet\WorkloadTestV3\WorkloadTestV2\WorkloadTest\bin\DocOutput\coverPage.docx
