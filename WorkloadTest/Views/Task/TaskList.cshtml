@@ -194,9 +194,13 @@
                         }else{
                             allDay = "false";
                         }
+                        string coe = "";
+                        if (task.CoE_ID.Value != null) {
+                            coe = task.CoE.CoE_Abbr;
+                        }
                         <text>
 				        {
-				            title: "@task.Task_ID: @{ if (task.CoE_ID != null) { Html.Raw(Model.allCoEs.FirstOrDefault(x => x.CoE_ID == task.CoE_ID).CoE); }} - @task.Description",
+				            title: "@task.Task_ID: @coe - @task.Description",
 				            start: '@task.Task_Date_From.Value.Year - @task.Task_Date_From.Value.Month - @task.Task_Date_From.Value.Day  @task.Task_Date_From.Value.TimeOfDay',
 				            end: '@task.Task_Date.Value.Year - @task.Task_Date.Value.Month - @task.Task_Date.Value.Day  @task.Task_Date.Value.TimeOfDay',
 				            task_id: "@task.Task_ID",

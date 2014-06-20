@@ -9,7 +9,7 @@
    
         <div class="row">
             <div class="small-12 small-centered columns">
-                @Html.ActionLink("Done", "Done", new { id = Model.task.Task_ID }, new { @class = "button" })
+                @Html.ActionLink("Done", "New", new { id = Model.task.Task_ID }, new { @class = "button" })
                 <button id="createFrontPage" type="button">Front Page</button>
                 @Html.ActionLink("Delete", "Delete", new { id = Model.task.Task_ID }, new { @class = "button" })
             </div>
@@ -429,8 +429,11 @@
                 type: 'POST',
                 data: JSON.stringify(parameters),
                 contentType: 'application/json; charset=utf-8',
-                success: function (result) {
-                    window.open("../../DocOutput/coverPage.docx");
+                success: function (retData) {
+                    var iframe = document.createElement("iframe");
+                    iframe.setAttribute("src", retData.url);
+                    iframe.setAttribute("style", "display: none");
+                    document.body.appendChild(iframe);
                 },
                 error: function (request) {
                 }

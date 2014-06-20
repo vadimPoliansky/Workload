@@ -13,6 +13,7 @@ namespace WorkloadTest.ViewModels
         public bool Priority { get; set; }
 
         public int? CoE_ID { get; set; }
+        public CoEs CoE { get; set; }
         public int? Analyst_ID { get; set; }
 
         public string Description { get; set; }

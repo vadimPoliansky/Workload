@@ -111,7 +111,7 @@
                 "For:",
             ],
             columns: [
-                { data: "Task_ID" },
+                { data: "Task_ID", readOnly: true, openCell: "true"},
                 { data: "CoE", type:'autocomplete', strict: true, 
                     source: function (query, process) {
                         $.ajax({
@@ -272,6 +272,11 @@
                 });
             });
 
+        });
+
+        $(document).on('dblclick', '.htDimmed', function(e){
+            var id = e.target.textContent;
+            window.location.href = "create?id=" + id;
         });
     });
 </script>

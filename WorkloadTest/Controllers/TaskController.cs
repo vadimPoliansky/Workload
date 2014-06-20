@@ -46,7 +46,7 @@ namespace WorkloadTest.Controllers
 
             Exceptions exception = new Exceptions();
 
-            List<Tasks> allTasks = db.Tasks.Where(x => x.Saved.Value).ToList();
+            List<Tasks> allTasks = db.Tasks.ToList();
             if (coeID.HasValue)
             {
                 if (coeID != 5)
@@ -95,7 +95,7 @@ namespace WorkloadTest.Controllers
                                                                 (DateTime?)null;
 
                         }
-                        if (exception != null && exception.Workload != null)
+                        if (exception != null && exception.Workload != null && task.Routine)
                         {
                             workload = exception.Workload;
                             if (exception.Workload_Unit_ID != null ) {
@@ -126,6 +126,7 @@ namespace WorkloadTest.Controllers
                             Routine = task.Routine,
                             Priority = task.Priority,
                             CoE_ID = task.CoE_ID,
+                            CoE = task.CoE,
                             Analyst_ID = task.Analyst_ID,
                             Description = task.Description,
                             Purpose = task.Purpose,
@@ -158,7 +159,7 @@ namespace WorkloadTest.Controllers
         [HttpGet]
         public ActionResult editTable(string taskID)
         {
-            var viewModelItems = db.Tasks.Where(x => x.Saved == true).ToList();
+            var viewModelItems = db.Tasks.ToList();
             var viewModelTasks = viewModelItems.Select(x => new TaskViewModel
             {
                 Task_ID= x.Task_ID,
@@ -459,6 +460,7 @@ namespace WorkloadTest.Controllers
             }
             var viewModel = new CreateViewModel
             {
+                
                 task = task,
                 allCoEs = db.CoEs.ToList(),
                 allWorkload_Units = db.Workload_Units.ToList(),
@@ -484,7 +486,7 @@ namespace WorkloadTest.Controllers
             return View(tasks);
         }
 
-        public void createFrontPage(IList<InstanceListViewModel> instanceList)
+        public JsonResult createFrontPage(IList<InstanceListViewModel> instanceList)
         {
             var analystID = instanceList[0].allInstances.FirstOrDefault().Analyst_ID;
             var analyst = db.Analysts.FirstOrDefault(x=>x.Analyst_ID == analystID);
@@ -543,11 +545,11 @@ namespace WorkloadTest.Controllers
                 Response.AddHeader("content-disposition", "attachment; filename=\"" + "DFGFDG" + ".doc\"");
                 Response.ContentType = "application/msword";
 
-                //ms.WriteTo(Response.OutputStream);
-                //Response.End();
-                //return Json(Response, JsonRequestBehavior.AllowGet);
-                var filenamePath = HttpContext.Server.MapPath("~/DocOutput/coverPage.docx");
-                combined.SaveAs(filenamePath);
+                ms.WriteTo(Response.OutputStream);
+                Response.End();
+                return Json(Response, JsonRequestBehavior.AllowGet);
+                //var filenamePath = HttpContext.Server.MapPath("~/DocOutput/coverPage.docx");
+                //combined.SaveAs(filenamePath);
 
                 //return Json("~/DocOutput/coverPage.docx", JsonRequestBehavior.AllowGet);
                 //return File(Response.ToString(), "application/x-ms-excel", "test.docx");
