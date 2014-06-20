@@ -550,7 +550,7 @@ namespace WorkloadTest.Controllers
                 var filenamePath = Server.MapPath("~/Docs") + "/" + filename;
                 combined.SaveAs(filenamePath);
 
-                return Json("/../../Docs/" + filename, JsonRequestBehavior.AllowGet);
+                return Json("/../../Docs1/" + filename, JsonRequestBehavior.AllowGet);
                 //return File(Response.ToString(), "application/x-ms-excel", "test.docx");
             }
 
