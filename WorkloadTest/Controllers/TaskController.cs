@@ -549,7 +549,7 @@ namespace WorkloadTest.Controllers
                 var filenamePath = HttpContext.Server.MapPath("~/Views/Task/coverPage.docx");
                 combined.SaveAs(filenamePath);
 
-                return Json("/../../Views/Task/coverPage.docx", JsonRequestBehavior.AllowGet);
+                return Json(filenamePath, JsonRequestBehavior.AllowGet);
                 //return File(Response.ToString(), "application/x-ms-excel", "test.docx");
             }
 
