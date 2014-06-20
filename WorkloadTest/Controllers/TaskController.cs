@@ -537,19 +537,21 @@ namespace WorkloadTest.Controllers
                     combined.ReplaceText("%Analyst%", analystName);
                     combined.ReplaceText("%Paths%", pathString ?? " ");
                 }
-                /*MemoryStream ms = new MemoryStream();
+                MemoryStream ms = new MemoryStream();
                 combined.SaveAs(ms);
                 Response.Clear();
                 Response.AddHeader("content-disposition", "attachment; filename=\"" + "DFGFDG" + ".doc\"");
                 Response.ContentType = "application/msword";
 
-                ms.WriteTo(Response.OutputStream);
-                Response.End();
-                return Json(Response, JsonRequestBehavior.AllowGet);*/
+                //ms.WriteTo(Response.OutputStream);
+                //Response.End();
+                //return Json(Response, JsonRequestBehavior.AllowGet);
                 var filename = "coverPage" + DateTime.Now.ToString("hmmss") + ".docx";
-                combined.SaveAs(HttpContext.Server.MapPath("~/App_Data/" + filename));
+                var filenamePath = HttpContext.Server.MapPath("~/App_Data/" + filename);
+                combined.SaveAs(filenamePath);
 
-                return Json(filename, JsonRequestBehavior.AllowGet);
+                return Json(filenamePath, JsonRequestBehavior.AllowGet);
+                //return File(Response.ToString(), "application/x-ms-excel", "test.docx");
             }
 
         }
