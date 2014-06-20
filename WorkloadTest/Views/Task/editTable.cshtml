@@ -252,6 +252,9 @@
 
         $(document).on('click', '.relative', function(e){
             var field = e.target.textContent;
+            if (field === "") {
+                field = e.target.nextSibling.textContent;
+            }
             var htmlContent ="<div class='simplemodal-close' id='filter'>";
             htmlContent += '<label><i class="fa fa-filter"></i><strong> Filter:</strong><label>';
             var ajaxUrl = 'get' + field + 's';
