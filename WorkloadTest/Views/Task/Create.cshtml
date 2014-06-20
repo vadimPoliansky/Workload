@@ -6,7 +6,7 @@
 }
 
     <br />
-    
+   
         <div class="row">
             <div class="small-12 small-centered columns">
                 @Html.ActionLink("Done", "Done", new { id = Model.task.Task_ID }, new { @class = "button" })
@@ -429,7 +429,8 @@
                 type: 'POST',
                 data: JSON.stringify(parameters),
                 contentType: 'application/json; charset=utf-8',
-                success: function (result) {
+                success: function (filename) {
+                    window.open("/../../App_Data/" + filename);
                 },
                 error: function (request) {
                 }

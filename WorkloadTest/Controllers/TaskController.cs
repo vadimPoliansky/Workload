@@ -484,7 +484,7 @@ namespace WorkloadTest.Controllers
             return View(tasks);
         }
 
-        public ActionResult createFrontPage(IList<InstanceListViewModel> instanceList)
+        public JsonResult createFrontPage(IList<InstanceListViewModel> instanceList)
         {
             var analystID = instanceList[0].allInstances.FirstOrDefault().Analyst_ID;
             var analyst = db.Analysts.FirstOrDefault(x=>x.Analyst_ID == analystID);
@@ -537,7 +537,7 @@ namespace WorkloadTest.Controllers
                     combined.ReplaceText("%Analyst%", analystName);
                     combined.ReplaceText("%Paths%", pathString ?? " ");
                 }
-                MemoryStream ms = new MemoryStream();
+                /*MemoryStream ms = new MemoryStream();
                 combined.SaveAs(ms);
                 Response.Clear();
                 Response.AddHeader("content-disposition", "attachment; filename=\"" + "DFGFDG" + ".doc\"");
@@ -545,7 +545,11 @@ namespace WorkloadTest.Controllers
 
                 ms.WriteTo(Response.OutputStream);
                 Response.End();
-                return View(Response);
+                return Json(Response, JsonRequestBehavior.AllowGet);*/
+                var filename = "coverPage" + DateTime.Now.ToString("hmmss") + ".docx";
+                combined.SaveAs(HttpContext.Server.MapPath("~/App_Data/" + filename));
+
+                return Json(filename, JsonRequestBehavior.AllowGet);
             }
 
         }

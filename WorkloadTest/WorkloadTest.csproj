@@ -334,6 +334,7 @@
     <Content Include="Scripts\jquery.handsontable.js" />
     <Content Include="Scripts\jquery.multilevelpushmenu.css" />
     <Content Include="Scripts\jquery.multilevelpushmenu.js" />
+    <Content Include="Scripts\jquery.simplemodal.1.4.4.min.js" />
     <Content Include="Scripts\jquery.unobtrusive-ajax.js" />
     <Content Include="Scripts\jquery.unobtrusive-ajax.min.js" />
     <Content Include="Scripts\jquery.validate.js" />

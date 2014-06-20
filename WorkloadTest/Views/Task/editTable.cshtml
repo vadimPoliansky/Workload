@@ -5,21 +5,12 @@
     ViewBag.allCoes = Model.allCoEs;
     ViewBag.allAnalysts = Model.allAnalysts;
 }
-<link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
-<div class="buttonGroup">
-Filter By:
-@foreach (var analyst in Model.allAnalysts.Where(x=>x.First_Name != null))
-{
-    <button class="filterButton" filterID ="@analyst.Analyst_ID" field="Analyst_ID" style="height:20px; padding:0">@analyst.First_Name</button>
-}
-</div>
 
 <div id="dataTable" style="overflow: scroll"></div>
 
-<link href="~/Content/ui-lightness/jquery-ui-1.10.4.min.css" rel="stylesheet" />
 <script type="text/javascript" src="~/Scripts/jquery-1.10.2.js"></script>
-<script type="text/javascript" src="~/Scripts/jquery-ui-1.10.4.min.js"></script>
 <script type="text/javascript" src="../../Scripts/jquery.handsontable.full.js"></script>
+<script src="~/Scripts/jquery.simplemodal.1.4.4.min.js"></script>
 <link rel="stylesheet" media="screen" href="../../Scripts/jquery.handsontable.full.css" />
 
 
@@ -27,23 +18,8 @@ Filter By:
 
     $('document').ready(function($){
         
-        
-        $("#dialog").dialog({
-            autoOpen: false,
-            modal: true,
-            buttons: {
-                "OK":function() {},
-                "Cancel": function() { $(this).dialog("close"); }
-            }
-        }
-            );
-
-        // Bind to the click event for my button and execute my function
-        $("#test").click(function(){
-            $("#dialog").dialog("open");
-        });
-
-        $(".filterButton").on("click",function(){
+        //$(".filterButton").on("click",function(){
+        $(document).on('click', '.filterButton', function(){
             var filterID = $(this).attr("filterID");
             var field= $(this).attr("field");
 
@@ -101,13 +77,13 @@ Filter By:
                 if (maxed && availableWidth === void 0) {
                     calculateSize();
                 }
-                return maxed ? availableWidth * 0.98 : 300;
+                return maxed ? availableWidth : 300;
             },
             height: function () {
                 if (maxed && availableHeight === void 0) {
                     calculateSize();
                 }
-                return maxed ? availableHeight * 0.98 : 300;
+                return maxed ? availableHeight * 0.99 : 300;
             },
             fixedRowsTop: 0,
             fixedColumnsLeft: 1,
@@ -116,8 +92,8 @@ Filter By:
             contextMenu: true,
             colHeaders: [
                 "ID",
-                "CoE ",
-                "Analyst",
+                '<i class="fa fa-filter"></i>CoE',
+                '<i class="fa fa-filter"></i>Analyst',
                 "Priority",
                 "Description",
                 "Purpose",
@@ -158,7 +134,7 @@ Filter By:
                         });
                     }
                 },
-                { data: "Priority" },
+                { data: "Priority", type:'autocomplete', strict: true, source: ["true", "false"] },
                 { data: "Description" },
                 { data: "Purpose" },
                 { data: "Requestor" },
@@ -207,44 +183,44 @@ Filter By:
             var changedValue = change[i][3];
             if (changedParameter !== "Task_ID"){
                 $.get('@Url.Action("/editTable")', {taskID : $example1.handsontable('getDataAtCell',change[i][0],0)}, function (data) {
-            var newValue = data;
-            var parameters = []
-            parameters.push({
-                Task_ID: (changedParameter=="Task_ID" ?  parseInt(changedValue) : newValue[0].Task_ID),
-                Routine: (changedParameter=="Routine" ? parseInt(changedValue): newValue[0].Routine),
-                Priority:(changedParameter=="Priority" ? changedValue : newValue[0].Priority),
-                Description:(changedParameter=="Description" ? changedValue : newValue[0].Description),
-                Purpose:(changedParameter=="Purpose" ? changedValue : newValue[0].Purpose),
-                Requestor:(changedParameter=="Requestor" ? changedValue : newValue[0].Requestor),
-                Workload:(changedParameter=="Workload" ? changedValue : newValue[0].Workload),
-                Workload_Unit_ID:(changedParameter=="Workload_Unit_ID" ? changedValue : newValue[0].Workload_Unit_ID),
-                Comment:(changedParameter=="Comment" ? changedValue : newValue[0].Comment),
-                Data_Source:(changedParameter=="Data_Source" ? changedValue : newValue[0].Data_Source),
-                Report_Location:(changedParameter=="Report_Location" ? changedValue : newValue[0].Report_Location),
-                Start_Date:(changedParameter=="Start_Date" ? changedValue : newValue[0].Start_Date),
-                Request_Date:(changedParameter=="Request_Date" ? changedValue : newValue[0].Request_Date),
-                Count:(changedParameter=="Count" ? changedValue : newValue[0].Count),
-                Frequency:(changedParameter=="Frequency" ? changedValue : newValue[0].Frequency),
-                Period_ID:(changedParameter=="Period_ID" ? changedValue : newValue[0].Period_ID),
-                User_Added:(changedParameter=="User_Added" ? changedValue : newValue[0].User_Added),
-                Date_Added:(changedParameter=="Date_Added" ? changedValue : newValue[0].Date_Added),
-                Saved:(changedParameter=="Saved" ? changedValue : newValue[0].Saved),
-                Analyst:(changedParameter=="Analyst" ? changedValue : newValue[0].Analyst),
-                CoE:(changedParameter=="CoE" ? changedValue : newValue[0].CoE),
-            })
-            $.ajax({
-                url: this.action,
-                type: 'POST',
-                data: JSON.stringify(parameters),
-                contentType: 'application/json; charset=utf-8',
-                success: function (result) {
-                },
-                error: function (request){
-                }
-            });
-        });
-    }
-}
+                    var newValue = data;
+                    var parameters = []
+                    parameters.push({
+                        Task_ID: (changedParameter=="Task_ID" ?  parseInt(changedValue) : newValue[0].Task_ID),
+                        Routine: (changedParameter=="Routine" ? parseInt(changedValue): newValue[0].Routine),
+                        Priority:(changedParameter=="Priority" ? changedValue : newValue[0].Priority),
+                        Description:(changedParameter=="Description" ? changedValue : newValue[0].Description),
+                        Purpose:(changedParameter=="Purpose" ? changedValue : newValue[0].Purpose),
+                        Requestor:(changedParameter=="Requestor" ? changedValue : newValue[0].Requestor),
+                        Workload:(changedParameter=="Workload" ? changedValue : newValue[0].Workload),
+                        Workload_Unit_ID:(changedParameter=="Workload_Unit_ID" ? changedValue : newValue[0].Workload_Unit_ID),
+                        Comment:(changedParameter=="Comment" ? changedValue : newValue[0].Comment),
+                        Data_Source:(changedParameter=="Data_Source" ? changedValue : newValue[0].Data_Source),
+                        Report_Location:(changedParameter=="Report_Location" ? changedValue : newValue[0].Report_Location),
+                        Start_Date:(changedParameter=="Start_Date" ? changedValue : newValue[0].Start_Date),
+                        Request_Date:(changedParameter=="Request_Date" ? changedValue : newValue[0].Request_Date),
+                        Count:(changedParameter=="Count" ? changedValue : newValue[0].Count),
+                        Frequency:(changedParameter=="Frequency" ? changedValue : newValue[0].Frequency),
+                        Period_ID:(changedParameter=="Period_ID" ? changedValue : newValue[0].Period_ID),
+                        User_Added:(changedParameter=="User_Added" ? changedValue : newValue[0].User_Added),
+                        Date_Added:(changedParameter=="Date_Added" ? changedValue : newValue[0].Date_Added),
+                        Saved:(changedParameter=="Saved" ? changedValue : newValue[0].Saved),
+                        Analyst:(changedParameter=="Analyst" ? changedValue : newValue[0].Analyst),
+                        CoE:(changedParameter=="CoE" ? changedValue : newValue[0].CoE),
+                    })
+                    $.ajax({
+                        url: this.action,
+                        type: 'POST',
+                        data: JSON.stringify(parameters),
+                        contentType: 'application/json; charset=utf-8',
+                        success: function (result) {
+                        },
+                        error: function (request){
+                        }
+                    });
+                });
+            }
+        }
 
         function addTask(index){
             $.ajax({
@@ -274,13 +250,47 @@ Filter By:
             });
         };
 
+        $(document).on('click', '.relative', function(e){
+            var field = e.target.textContent;
+            var htmlContent ="<div class='simplemodal-close' id='filter'>";
+            htmlContent += '<label><i class="fa fa-filter"></i><strong> Filter:</strong><label>';
+            var ajaxUrl = 'get' + field + 's';
+            $.get(ajaxUrl, function(data){
+                jQuery.each(data, function (i, value) {
+                    htmlContent += "<div class='filterButton' filterID ='" + value + "' field='" + field + "'>" + value + "</div>"
+                    //htmlContent += "<div class='filterItem'>" + value + "</div>"
+                });
+                htmlContent += "<div class='filterButton' filterID ='' field='" + field + "'><em>Clear</em></div>"
+                htmlContent += "</div>";
+                console.log(htmlContent);
+                var posX = e.pageX , posY = e.pageY;
+                $(htmlContent).modal({
+                    position: [posY,posX],
+                    overlayClose:true,
+                    opacity:80,
+                    overlayCss: {backgroundColor:"#fff"},
+                });
+            });
 
-
+        });
     });
-
 </script>
 
 <style>
+
+    .simplemodal-close {
+        background:#0094ff;
+    }
+
+    .dialog {
+        background-color:red;
+        padding:5px;
+    }
+    .filterButton {
+        padding:0 15px 0 15px;
+        border-bottom:1px solid;
+        color:white;
+    }
 
     .wtSpreader {
         height:500px !important;
@@ -290,6 +300,9 @@ Filter By:
 
     .buttonGroup {
         padding-top:5px;
+        padding-left:15px;
+        padding-bottom:0px;
+        border-bottom:1px solid;
     }
 
     .inner-wrap {

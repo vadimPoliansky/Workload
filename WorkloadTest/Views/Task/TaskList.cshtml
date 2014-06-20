@@ -52,6 +52,7 @@
 
     #calendar {
         height:200% !important;
+        width:100% !important;
     }
 
 </style>
@@ -181,7 +182,7 @@
                     right: 'year,month,agendaWeek,agendaDay'
                 },
                 editable: true,
-                height: $( document ).height(),
+                height: $( document ).height() *0.93,
                 events: [
                 @foreach (var task in Model.allInstances)
                 {
@@ -218,9 +219,9 @@
                     updateDrop(event, true)
                 },
                 eventClick: function(calEvent, jsEvent, view) {
-                    url = "@Url.Action("Create", "Task", new {id = "XXX"})";
-                    url = url.replace( "XXX", calEvent.task_id);
-                    window.open(url, "popupWindow", "width=600,height=600,scrollbars=yes");
+                    //url = "@Url.Action("Create", "Task", new {id = "XXX"})";
+                    //url = url.replace( "XXX", calEvent.task_id);
+                    window.location.href = "/task/create?id=" + calEvent.task_id;
                 },
             });
 
