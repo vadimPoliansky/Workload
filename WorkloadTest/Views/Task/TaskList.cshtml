@@ -188,12 +188,7 @@
                 {
                     if (task.Task_Date != null)
                     {
-                        string allDay;
-                        if (task.Task_Date.Value.TimeOfDay.TotalSeconds == 0 && task.Task_Date_From.Value.TimeOfDay.TotalSeconds == 0){
-                            allDay = "true";
-                        }else{
-                            allDay = "false";
-                        }
+                        var allDay = "true";
                         string coe = "";
                         if (task.CoE_ID.Value != null) {
                             coe = task.CoE.CoE_Abbr;
@@ -201,8 +196,8 @@
                         <text>
 				        {
 				            title: "@task.Task_ID: @coe - @task.Description",
-				            start: '@task.Task_Date_From.Value.Year - @task.Task_Date_From.Value.Month - @task.Task_Date_From.Value.Day  @task.Task_Date_From.Value.TimeOfDay',
-				            end: '@task.Task_Date.Value.Year - @task.Task_Date.Value.Month - @task.Task_Date.Value.Day  @task.Task_Date.Value.TimeOfDay',
+				            start: '@task.Task_Date_From.Value.Year - @task.Task_Date_From.Value.Month - @task.Task_Date_From.Value.Day',
+				            end: '@task.Task_Date.Value.Year - @task.Task_Date.Value.Month - @task.Task_Date.Value.Day',
 				            task_id: "@task.Task_ID",
 				            instance_id: "@task.Instance",
 				            comment: "@task.Instance_Comment",
