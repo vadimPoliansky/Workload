@@ -889,6 +889,7 @@ namespace WorkloadTest.Controllers
                         combined.ReplaceText("%Line" + j + "%", " ");
                     }
 
+                    combined.ReplaceText("%Now%", DateTime.Now.ToString("MM/dd/yyyy") ?? " ");
                     combined.ReplaceText("%Description%", instance.Description ?? " ");
                     combined.ReplaceText("%Requestor%", instance.Requestor ?? " ");
                     combined.ReplaceText("%Request_Date%", instance.Request_Date != null ? instance.Request_Date.ToString() : " ");
