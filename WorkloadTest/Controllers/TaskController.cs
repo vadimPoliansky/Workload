@@ -976,11 +976,14 @@ namespace WorkloadTest.Controllers
 
         public ActionResult Delete(int? id)
         {
-            Tasks tasks = db.Tasks.Find(id);
-            db.Tasks.Remove(tasks);
+            Tasks task = db.Tasks.Find(id);
+            if (task != null)
+            {
+                db.Tasks.Remove(task);
+            }
             db.SaveChanges();
             var lastID = db.Tasks.Max(x => x.Task_ID);
-            return RedirectToAction("create", new { id = lastID });
+            return RedirectToAction("editTable");
         }
 
         public ActionResult Done(int? id)
