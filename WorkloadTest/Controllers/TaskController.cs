@@ -11,6 +11,9 @@ using WorkloadTest.Helper;
 using Novacode;
 using System.Diagnostics;
 using System.IO;
+using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Spreadsheet;
+using ClosedXML.Excel;
 
 namespace WorkloadTest.Controllers
 {
@@ -32,9 +35,10 @@ namespace WorkloadTest.Controllers
             return View(viewModel);
         }
 
-        public ActionResult TaskList(int? coeID, int? analystID)
+        public ActionResult TaskList(int? coeID, int? analystID, DateTime? date, bool? getTasks, bool? toExcel)
         {
             List<InstanceViewModel> allInstances = new List<InstanceViewModel>();
+            List<CalendarViewModel> allInstancesCalendar = new List<CalendarViewModel>();
             InstanceListViewModel viewModel = new InstanceListViewModel();
             
             List<Periods> periods = new List<Periods>();
@@ -49,10 +53,10 @@ namespace WorkloadTest.Controllers
             List<Tasks> allTasks = db.Tasks.ToList();
             if (coeID.HasValue)
             {
-                if (coeID != 5)
-                {
+                //if (coeID != 5)
+                //{
                     allTasks = allTasks.Where(x => x.CoE_ID == coeID).ToList();
-                }
+                //}
             }
             if (analystID.HasValue)
             {
@@ -62,28 +66,37 @@ namespace WorkloadTest.Controllers
 
             foreach (var task in allTasks)
             {
+                if (task.Count == null || task.Count == 0) { task.Count = 1; }
                 for (var i = 0; i <= task.Count; i++)
                 {
-                    exception = exceptions.FirstOrDefault(x=>x.Task_ID == task.Task_ID && x.Instance_ID == i);
+                    exception = exceptions.FirstOrDefault(x => x.Task_ID == task.Task_ID && x.Instance_ID == i);
                     bool canceled;
-                    if (exception != null)  {
+                    if (exception != null)
+                    {
                         canceled = exception.Canceled;
-                    }   else   {
+                    }
+                    else
+                    {
                         canceled = false;
                     }
                     if (canceled == false)
                     {
                         DateTime? taskDate;
+                        string taskDateTime;
                         double? workload;
                         string workloadUnit;
-                        if (exception != null && exception.Date != null)
+                        bool resch = false;
+                        if (exception != null && exception.Date != null && task.Routine)
                         {
                             taskDate = exception.Date;
+                            taskDateTime = exception.Time_Of_Day_ID != null ? exception.Time_Of_Day.Time_Of_Day_Abbr : null;
+                            resch = true;
                             if (!task.Routine) { i = task.Count.Value + 1; }
                         }
                         else if (!task.Routine)
                         {
                             taskDate = task.Start_Date;
+                            taskDateTime = task.Time_Of_Day_ID != null ? task.Time_Of_Day.Time_Of_Day_Abbr : null;
                             i = task.Count.Value + 1;
                         }
                         else
@@ -93,22 +106,29 @@ namespace WorkloadTest.Controllers
                                                                     task.Frequency.Value,
                                                                     i) :
                                                                 (DateTime?)null;
+                            taskDateTime = task.Time_Of_Day_ID != null ? task.Time_Of_Day.Time_Of_Day_Abbr : null;
 
                         }
-                        if (exception != null && exception.Workload != null && task.Routine)
+                        if (exception != null && exception.Workload != null)
                         {
                             workload = exception.Workload;
-                            if (exception.Workload_Unit_ID != null ) {
+                            if (exception.Workload_Unit_ID != null)
+                            {
                                 workloadUnit = workload_units.FirstOrDefault(x => x.Workload_Unit_ID == exception.Workload_Unit_ID).Workload_Unit;
-                            } else {
+                            }
+                            else
+                            {
                                 workloadUnit = "d";
                             }
-                        } else {
+                        }
+                        else
+                        {
                             workload = task.Workload == null ? 0 : task.Workload;
-                            workloadUnit = workload_units.FirstOrDefault(x => x.Workload_Unit_ID == task.Workload_Unit_ID).Workload_Unit;
+                            workloadUnit = task.Workload_Unit_ID == null ? "" : workload_units.FirstOrDefault(x => x.Workload_Unit_ID == task.Workload_Unit_ID).Workload_Unit;
                         }
                         DateTime? taskDateFrom = null;
-                        if (workload != 0)
+
+                        if (workload != 0 && workloadUnit != "h")
                         {
                             taskDateFrom = taskDate != null ? Helper.DateMethods.DateAdd(taskDate,
                                                                         workloadUnit,
@@ -120,94 +140,382 @@ namespace WorkloadTest.Controllers
                         {
                             taskDateFrom = taskDate;
                         }
-                        InstanceViewModel instance = new InstanceViewModel
+                        if (Request.IsAjaxRequest())
                         {
-                            Task_ID = task.Task_ID,
-                            Routine = task.Routine,
-                            Priority = task.Priority,
-                            CoE_ID = task.CoE_ID,
-                            CoE = task.CoE,
-                            Analyst_ID = task.Analyst_ID,
-                            Description = task.Description,
-                            Purpose = task.Purpose,
-                            Requestor = task.Requestor,
-                            Workload = task.Workload,
-                            Workload_Unit_ID = task.Workload_Unit_ID,
-                            Comment = task.Comment,
-                            Request_Date = task.Request_Date,
-                            Task_Date = taskDate,
-                            Task_Date_From = taskDateFrom,
-                            User_Added = task.User_Added,
-                            Date_Added = task.Date_Added,
-                            Instance = task.Routine ? i : 0,
-                            Instance_Comment = exception != null? exception.Comment : null,
-                            Exception_ID = exception != null ? exception.Exception_ID: 0,
-                        };
-                        allInstances.Add(instance);
+                            if (taskDate != null)
+                            {
+                                string endTime;
+                                switch (taskDateTime)
+                                {
+                                    case "Morn":
+                                        endTime = "12:30:00 AM";
+                                        break;
+                                    case "Aftr":
+                                        endTime = "01:00:00  AM";
+                                        break;
+                                    case "End":
+                                    default:
+                                        endTime = "01:30:00  AM";
+                                        break;
+
+                                }
+                                CalendarViewModel instance = new CalendarViewModel
+                                {
+                                    title = (task.CoE != null ? task.CoE.CoE_Abbr : "") + " - " + task.Description,
+                                    start = taskDateFrom.Value.Year + " - " + taskDateFrom.Value.Month + " - " + taskDateFrom.Value.Day + " 12:00:00 AM",
+                                    end = taskDate.Value.Year + " - " + taskDate.Value.Month + " - " + taskDate.Value.Day + " " + endTime,
+                                    task_id = task.Task_ID.ToString(),
+                                    instance_id = task.Routine ? i.ToString() : "0",
+                                    analyst_id = @task.Analyst_ID.ToString(),
+                                    coe_id = task.CoE_ID.ToString(),
+                                    //color = eventColorsCoE.Color_@task.CoE_ID,
+                                    priority = task.Priority.ToString(),
+                                };
+                                allInstancesCalendar.Add(instance);
+                            }
+                        }
+                        else if (getTasks.HasValue && getTasks.Value)
+                        {
+                            InstanceViewModel instance = new InstanceViewModel
+                            {
+                                Task_ID = task.Task_ID,
+                                Routine = task.Routine,
+                                Priority = task.Priority,
+                                CoE_ID = task.CoE_ID,
+                                CoE = task.CoE,
+                                Analyst_ID = task.Analyst_ID,
+                                Analyst = task.Analyst,
+                                Description = task.Description,
+                                Purpose = task.Purpose,
+                                Requestor = task.Requestor,
+                                Workload = task.Workload,
+                                Workload_Unit_ID = task.Workload_Unit_ID,
+                                Workload_Unit = task.Workload_Unit,
+
+                                Comment = task.Comment,
+                                Request_Date = task.Request_Date,
+
+                                Task_Date = taskDate,
+                                Task_Date_Time = taskDateTime,
+
+                                Task_Date_From = taskDateFrom,
+
+                                User_Added = task.User_Added,
+                                Date_Added = task.Date_Added,
+                                Instance = task.Routine ? i : 0,
+                                Instance_Comment = exception != null ? exception.Comment : null,
+                                Exception_ID = exception != null ? exception.Exception_ID : 0,
+
+                                Rescheduled = resch,
+                            };
+                            allInstances.Add(instance);
+                        }
                     }
                 }
             }
 
-            viewModel.allInstances = allInstances.ToList();
-            viewModel.allCoEs = db.CoEs.ToList();
-            viewModel.allAnalysts = db.Analysts.ToList();
-            viewModel.allWorkload_Units = db.Workload_Units.ToList();
-            
-            return View(viewModel);
+            /*if (date.HasValue) {
+                var instancesAtDate = allInstances.Where(x => x.Task_Date == date.Value).ToList();
+                return Json(instancesAtDate, JsonRequestBehavior.AllowGet);
+            } else {
+                viewModel.allInstances = allInstances.ToList();
+            }*/
+
+            if (Request.IsAjaxRequest())
+            {
+                return Json(allInstancesCalendar, JsonRequestBehavior.AllowGet);
+            }
+            else
+            {
+                viewModel.allInstances = allInstances.ToList();
+                viewModel.allCoEs = db.CoEs.ToList();
+                viewModel.allAnalysts = db.Analysts.ToList();
+                viewModel.allWorkload_Units = db.Workload_Units.ToList();
+                viewModel.allTime_Of_Days = db.Time_Of_Days.ToList();
+            }
+
+            if (toExcel.HasValue && toExcel.Value)
+            {
+                string path = HttpContext.Server.MapPath("~/App_Data/excelTemp.xlsx");
+
+                var wb = new XLWorkbook(path);
+
+                
+                string[] monthNames =
+                    System.Globalization.CultureInfo.CurrentCulture
+                    .DateTimeFormat.MonthGenitiveNames;
+
+
+                var ws = wb.Worksheet("byCoEwAdhoc");
+                var startCol = 1;
+                var currRow = 1;
+                var currCol = startCol;
+                var colHeaderStart = 3;
+                ws.Cell(currRow, colHeaderStart).Value = "Routine";
+                ws.Cell(currRow, colHeaderStart + 1).Value = "Adhoc";
+                currRow++;
+
+                for (var month = 1; month <= 12; month++) 
+                {
+                    var coeCount = viewModel.allCoEs.Count();
+                    ws.Cell(currRow, currCol).Value = monthNames[month - 1];
+
+                    ws.Range(ws.Cell(currRow, currCol).Address, ws.Cell(currRow + coeCount - 1, currCol).Address).Merge();
+
+                    currCol++;
+
+                    foreach (var coe in viewModel.allCoEs)
+                    {
+                        var sumRoutine = allInstances.Where(x => x.Task_Date.HasValue ? x.Task_Date.Value.Month == month : false).Where(x => x.Routine == true).Where(x=> (x.CoE_ID ?? 0) == coe.CoE_ID).Sum(
+                            x => x.Workload * x.Workload_Unit.Value
+                        );
+                        var sumAdhoc = allInstances.Where(x => x.Task_Date.HasValue ? x.Task_Date.Value.Month == month : false).Where(x => x.Routine != true).Where(x => (x.CoE_ID ?? 0) == coe.CoE_ID).Sum(
+                            x => x.Workload * x.Workload_Unit.Value
+                        );
+
+
+                        ws.Cell(currRow, currCol).Value = coe.CoE_Abbr;
+                        currCol++;
+                        ws.Cell(currRow, currCol).Value = sumRoutine;
+                        currCol++;
+                        ws.Cell(currRow, currCol).Value = sumAdhoc;
+                        currCol++;
+
+                        currCol = startCol + 1;
+                        currRow++;
+                    }
+                    currCol = startCol;
+                    currRow++;
+                }
+
+                ws = wb.Worksheet("byCoE");
+                currRow = 1;
+                currCol = startCol;
+                var headerRow = currRow;
+                currRow++;
+
+                for (var month = 1; month <= 12; month++)
+                {
+                    var coeCount = viewModel.allCoEs.Count();
+                    ws.Cell(currRow, 1).Value = monthNames[month - 1];
+                    currCol++;
+                    foreach (var coe in viewModel.allCoEs)
+                    {
+                        var sumRoutine = allInstances.Where(x => x.Task_Date.HasValue ? x.Task_Date.Value.Month == month : false).Where(x => x.Routine == true).Where(x => (x.CoE_ID ?? 0) == coe.CoE_ID).Sum(
+                            x => x.Workload * x.Workload_Unit.Value
+                        );
+                        var sumAdhoc = allInstances.Where(x => x.Task_Date.HasValue ? x.Task_Date.Value.Month == month : false).Where(x => x.Routine != true).Where(x => (x.CoE_ID ?? 0) == coe.CoE_ID).Sum(
+                            x => x.Workload * x.Workload_Unit.Value
+                        );
+
+                        ws.Cell(currRow, currCol).Value = sumRoutine;
+                        ws.Cell(headerRow, currCol).Value = coe.CoE_Abbr;
+                        currCol++;
+                    }
+                    currCol = startCol;
+                    currRow++;
+                }
+
+                ws = wb.Worksheet("byAnalystwAdhoc");
+                startCol = 1;
+                currRow = 1;
+                currCol = startCol;
+                colHeaderStart = 3;
+                ws.Cell(currRow, colHeaderStart).Value = "Routine";
+                ws.Cell(currRow, colHeaderStart + 1).Value = "Adhoc";
+                currRow++;
+
+                for (var month = 1; month <= 12; month++)
+                {
+                    var analystCount = viewModel.allAnalysts.Count();
+                    ws.Cell(currRow, currCol).Value = monthNames[month - 1];
+
+                    ws.Range(ws.Cell(currRow, currCol).Address, ws.Cell(currRow + analystCount - 1, currCol).Address).Merge();
+
+                    currCol++;
+
+                    foreach (var analyst in viewModel.allAnalysts)
+                    {
+                        var sumRoutine = allInstances.Where(x => x.Task_Date.HasValue ? x.Task_Date.Value.Month == month : false).Where(x => x.Routine == true).Where(x => (x.Analyst_ID ?? 0) == analyst.Analyst_ID).Sum(
+                            x => x.Workload * x.Workload_Unit.Value
+                        );
+                        var sumAdhoc = allInstances.Where(x => x.Task_Date.HasValue ? x.Task_Date.Value.Month == month : false).Where(x => x.Routine != true).Where(x => (x.Analyst_ID ?? 0) == analyst.Analyst_ID).Sum(
+                            x => x.Workload * x.Workload_Unit.Value
+                        );
+
+
+                        ws.Cell(currRow, currCol).Value = analyst.First_Name;
+                        currCol++;
+                        ws.Cell(currRow, currCol).Value = sumRoutine;
+                        currCol++;
+                        ws.Cell(currRow, currCol).Value = sumAdhoc;
+                        currCol++;
+
+                        currCol = startCol + 1;
+                        currRow++;
+                    }
+                    currCol = startCol;
+                    currRow++;
+                }
+
+                ws = wb.Worksheet("byAnalyst");
+                currRow = 1;
+                currCol = startCol;
+                headerRow = currRow;
+                currRow++;
+
+                for (var month = 1; month <= 12; month++)
+                {
+                    var analystCount = viewModel.allAnalysts.Count();
+                    ws.Cell(currRow, 1).Value = monthNames[month - 1];
+                    currCol++;
+                    foreach (var analyst in viewModel.allAnalysts)
+                    {
+                        var sumRoutine = allInstances.Where(x => x.Task_Date.HasValue ? x.Task_Date.Value.Month == month : false).Where(x => x.Routine == true).Where(x => (x.Analyst_ID ?? 0) == analyst.Analyst_ID).Sum(
+                            x => x.Workload * x.Workload_Unit.Value
+                        );
+                        var sumAdhoc = allInstances.Where(x => x.Task_Date.HasValue ? x.Task_Date.Value.Month == month : false).Where(x => x.Routine != true).Where(x => (x.Analyst_ID ?? 0) == analyst.Analyst_ID).Sum(
+                            x => x.Workload * x.Workload_Unit.Value
+                        );
+
+                        ws.Cell(currRow, currCol).Value = sumRoutine;
+                        ws.Cell(headerRow, currCol).Value = analyst.First_Name;
+                        currCol++;
+                    }
+                    currCol = startCol;
+                    currRow++;
+                }
+
+                ws = wb.Worksheet("Raw");
+                currRow = 1;
+                startCol = 1;
+                currCol = startCol;
+                headerRow = currRow;
+                currRow++;
+
+                foreach (var task in allInstances)
+                {
+                    ws.Cell(currRow, currCol).Value = task.Task_ID;
+                    currCol++;
+                    ws.Cell(currRow, currCol).Value = task.Task_Date.HasValue ? task.Task_Date.Value : (DateTime?)null;
+                    currCol++;
+                    ws.Cell(currRow, currCol).Value = task.Priority == true ? "Priority" : "Not Priority";
+                    currCol++;
+                    ws.Cell(currRow, currCol).Value = task.Routine == true ? "Routine" : "Ad-hoc";
+                    currCol++;
+                    ws.Cell(currRow, currCol).Value = task.CoE != null ? task.CoE.CoE_Abbr : "";
+                    currCol++;
+                    ws.Cell(currRow, currCol).Value = task.Analyst != null ? task.Analyst.First_Name : "";
+                    currCol++;
+                    ws.Cell(currRow, currCol).Value = task.Description;
+                    currCol++;
+                    ws.Cell(currRow, currCol).Value = task.Purpose;
+                    currCol++;
+                    ws.Cell(currRow, currCol).Value = task.Rescheduled == true ? "Rescheduled" : "";
+                    currCol++;
+                    ws.Cell(currRow, currCol).Value = task.Workload;
+                    currCol++;
+                    ws.Cell(currRow, currCol).Value = task.Workload_Unit != null ? task.Workload_Unit.Workload_Unit_Name : "";
+                    currCol++;
+                    ws.Cell(currRow, currCol).Value = task.Workload_Unit != null ? task.Workload_Unit.Value : 0;
+                    currCol++;
+                    ws.Cell(currRow, currCol).Value = task.Workload_Unit != null ? task.Workload * task.Workload_Unit.Value : 0;
+                    currCol++;
+
+                    currCol = startCol;
+                    currRow++;
+                }
+
+                HttpResponse httpResponse = this.HttpContext.ApplicationInstance.Context.Response;
+                httpResponse.Clear();
+                httpResponse.ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+                httpResponse.AddHeader("content-disposition", "attachment;filename=\"workloadStats.xlsx\"");
+                using (MemoryStream memoryStream = new MemoryStream())
+                {
+                    wb.SaveAs(memoryStream);
+                    memoryStream.WriteTo(httpResponse.OutputStream);
+                    memoryStream.Close();
+                }
+
+                httpResponse.End();
+
+                return View(viewModel);
+            }
+            else
+            {
+                return View(viewModel);
+            }
+        }
+
+        public ActionResult reports()
+        {
+            return(TaskList(null, null, null, true, true));
         }
 
         [HttpGet]
         public ActionResult editTable(string taskID)
         {
-            var viewModelItems = db.Tasks.ToList();
-            var viewModelTasks = viewModelItems.Select(x => new TaskViewModel
+            if (taskID != "")
             {
-                Task_ID= x.Task_ID,
-                Routine= x.Routine,
-                Priority= x.Priority,
+                var viewModelItems = db.Tasks.ToList();
+                var viewModelTasks = viewModelItems.Select(x => new TaskViewModel
+                {
+                    Task_ID = x.Task_ID,
+                    Routine = x.Routine,
+                    Priority = x.Priority,
 
-                CoE_ID= x.CoE_ID,
-                Analyst_ID= x.Analyst_ID,
+                    CoE_ID = x.CoE_ID,
+                    Analyst_ID = x.Analyst_ID,
 
-                Description= x.Description,
-                Purpose = x.Purpose,
-                Requestor= x.Requestor,
-                Workload= x.Workload,
-                Workload_Unit_ID= x.Workload_Unit_ID,
-                Comment= x.Comment,
+                    Description = x.Description,
+                    Purpose = x.Purpose,
+                    Requestor = x.Requestor,
+                    Workload = x.Workload,
+                    Workload_Unit_ID = x.Workload_Unit_ID,
+                    Workload_Unit = x.Workload_Unit != null ? x.Workload_Unit.Workload_Unit_Name : "",
+                    Comment = x.Comment,
 
-                Data_Source= x.Data_Source,
-                Report_Location= x.Report_Location,
+                    Data_Source = x.Data_Source,
+                    Report_Location = x.Report_Location,
 
-                Start_Date = x.Start_Date != null ? x.Start_Date.Value.ToString("yyyy-MM-dd") : "",
-                Request_Date = x.Request_Date != null ? x.Request_Date.Value.ToString("yyyy-MM-dd"): "",
+                    Start_Date = x.Start_Date != null ? x.Start_Date.Value.ToString("yyyy-MM-dd") : "",
+                    Request_Date = x.Request_Date != null ? x.Request_Date.Value.ToString("yyyy-MM-dd") : "",
 
-                Count= x.Count,
-                Frequency= x.Frequency,
-                Period_ID= x.Period_ID,
+                    Count = x.Count,
+                    Frequency = x.Frequency,
+                    Period_ID = x.Period_ID,
 
-                User_Added= x.User_Added,
-                Date_Added= x.Date_Added != null ? x.Date_Added.Value.ToString("yyyy-MM-dd"): "",
+                    User_Added = x.User_Added,
+                    Date_Added = x.Date_Added != null ? x.Date_Added.Value.ToString("yyyy-MM-dd") : "",
 
-                Saved= x.Saved,
+                    Saved = x.Saved,
 
-                Analyst= x.Analyst != null ? x.Analyst.First_Name : "",
-                CoE= x.CoE != null? x.CoE.CoE : "",
-                Period = x.Period != null? x.Period.Period_Name : "",
-            }).ToList();
-            var viewModel = new TaskListViewModel
-            {
-                allTasks = viewModelTasks,
-                allCoEs = db.CoEs.ToList(),
-                allAnalysts = db.Analysts.ToList(),
-            };
-            if (Request.IsAjaxRequest())
-            {
-                return Json(viewModel.allTasks.Where(x => x.Task_ID.ToString().Contains(taskID == null ? "" : taskID)), JsonRequestBehavior.AllowGet);
+                    Analyst = x.Analyst != null ? x.Analyst.First_Name : "",
+                    CoE = x.CoE != null ? x.CoE.CoE : "",
+                    Period = x.Period != null ? x.Period.Period_Name : "",
+                }).ToList();
+                var viewModel = new TaskListViewModel
+                {
+                    allTasks = viewModelTasks,
+                    allCoEs = db.CoEs.ToList(),
+                    allAnalysts = db.Analysts.ToList(),
+                };
+                if (Request.IsAjaxRequest())
+                {
+                    return Json(viewModel.allTasks.Where(x => x.Task_ID.ToString().Contains(taskID == null ? "" : taskID)), JsonRequestBehavior.AllowGet);
+                }
+                else
+                {
+                    return View(viewModel);
+                }
             }
             else
             {
-                return View(viewModel);
+                var newTask = new Tasks();
+                db.Tasks.Add(newTask);
+                db.SaveChanges();
+
+                return Json(newTask.Task_ID, JsonRequestBehavior.AllowGet);
             }
 
         }
@@ -219,9 +527,11 @@ namespace WorkloadTest.Controllers
             string analyst = taskChange[0].Analyst;
             string coe = taskChange[0].CoE;
             string period = taskChange[0].Period;
+            string workload = taskChange[0].Workload_Unit;
             int? analystID = null;
             int? coeID = null;
             int? periodID = null;
+            int? workloadUnitID = null;
             if (taskChange[0].Analyst != null && taskChange[0].Analyst != "")
             {
                 analystID = db.Analysts.Any(x => x.First_Name == analyst) ?  db.Analysts.FirstOrDefault(x => x.First_Name == analyst).Analyst_ID : (int?)null;
@@ -233,7 +543,11 @@ namespace WorkloadTest.Controllers
             }
             if (taskChange[0].Period != null && taskChange[0].Period != "")
             {
-                periodID = db.Periods.Any(x => x.Period == period) ? db.Periods.FirstOrDefault(x => x.Period == period).Period_ID : (int?)null;
+                periodID = db.Periods.Any(x => x.Period_Name == period) ? db.Periods.FirstOrDefault(x => x.Period_Name == period).Period_ID : (int?)null;
+            }
+            if (taskChange[0].Workload_Unit != null && taskChange[0].Workload_Unit != "")
+            {
+                workloadUnitID = db.Workload_Units.Any(x => x.Workload_Unit_Name == workload) ? db.Workload_Units.FirstOrDefault(x => x.Workload_Unit_Name == workload).Workload_Unit_ID : (int?)null;
             }
             if (db.Tasks.Any(x => x.Task_ID == taskID))
             {
@@ -252,7 +566,6 @@ namespace WorkloadTest.Controllers
                         Purpose = taskChange[0].Purpose,
                         Requestor = taskChange[0].Requestor,
                         Workload = taskChange[0].Workload,
-                        Workload_Unit_ID = taskChange[0].Workload_Unit_ID,
                         Comment = taskChange[0].Comment,
 
                         Data_Source = taskChange[0].Data_Source,
@@ -272,6 +585,7 @@ namespace WorkloadTest.Controllers
 
                         Analyst_ID = analystID ?? null,
                         CoE_ID = coeID ?? null,
+                        Workload_Unit_ID = workloadUnitID ?? null,
 
                     };
 
@@ -329,6 +643,12 @@ namespace WorkloadTest.Controllers
         public JsonResult getAnalysts()
         {
             return Json(db.Analysts.Select(x => x.First_Name.ToLower()).ToList(), JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpGet]
+        public JsonResult getWorkload_Units()
+        {
+            return Json(db.Workload_Units.Select(x => x.Workload_Unit_Name.ToLower()).ToList(), JsonRequestBehavior.AllowGet);
         }
 
         [HttpGet]
@@ -391,23 +711,44 @@ namespace WorkloadTest.Controllers
             Exceptions viewModel = new Exceptions();
 
             var exception = change[0];
+            var routine = db.Tasks.Any(x => x.Task_ID == exception.Task_ID) ? db.Tasks.FirstOrDefault(x=>x.Task_ID == exception.Task_ID).Routine : false;
             if (db.Exceptions.Any(x => x.Task_ID == exception.Task_ID && x.Instance_ID == exception.Instance_ID))
             {
-                if (ModelState.IsValid)
+                if (routine)
                 {
-                    //exception.Exception_ID = db.Exceptions.FirstOrDefault(x => x.Task_ID == exception.Task_ID && x.Instance_ID == exception.Instance_ID).Exception_ID;
-                    db.Entry(exception).State = EntityState.Modified;
+                    if (ModelState.IsValid)
+                    {
+                        //exception.Exception_ID = db.Exceptions.FirstOrDefault(x => x.Task_ID == exception.Task_ID && x.Instance_ID == exception.Instance_ID).Exception_ID;
+                        db.Entry(exception).State = EntityState.Modified;
+                        db.SaveChanges();
+                        viewModel = db.Exceptions.FirstOrDefault(x => x.Exception_ID == exception.Exception_ID);
+                    }
+                }
+                else
+                {
+                    var task = db.Tasks.FirstOrDefault(x => x.Task_ID == exception.Task_ID);
+                    task.Start_Date = exception.Date;
+                    db.Entry(task).Property(x => x.Start_Date).IsModified = true;
                     db.SaveChanges();
-                    viewModel = db.Exceptions.FirstOrDefault(x => x.Exception_ID == exception.Exception_ID);
                 }
             }
             else
             {
-                if (ModelState.IsValid)
+                if (routine)
                 {
-                    db.Exceptions.Add(exception);
+                    if (ModelState.IsValid)
+                    {
+                        db.Exceptions.Add(exception);
+                        db.SaveChanges();
+                        viewModel = db.Exceptions.FirstOrDefault(x => x.Exception_ID == exception.Exception_ID);
+                    }
+                }
+                else
+                {
+                    var task = db.Tasks.FirstOrDefault(x => x.Task_ID == exception.Task_ID);
+                    task.Start_Date = exception.Date;
+                    db.Entry(task).Property(x => x.Start_Date).IsModified = true;
                     db.SaveChanges();
-                    viewModel = db.Exceptions.FirstOrDefault(x => x.Exception_ID == exception.Exception_ID);
                 }
             }
 
@@ -415,6 +756,18 @@ namespace WorkloadTest.Controllers
 
             return Json(viewModel, JsonRequestBehavior.AllowGet);
 
+        }
+
+        [HttpPost]
+        public void deleteDrop(IList<Exceptions> delete)
+        {
+            var deleteID = delete[0].Exception_ID;
+            var deleteException = db.Exceptions.FirstOrDefault(x => x.Exception_ID == deleteID);
+            if (deleteException != null)
+            {
+                db.Exceptions.Remove(deleteException);
+                db.SaveChanges();
+            }
         }
 
         public ActionResult EditException(int Task_ID, int Instance_ID)
@@ -451,6 +804,12 @@ namespace WorkloadTest.Controllers
             if (id.HasValue)
             {
                 task = db.Tasks.FirstOrDefault(x => x.Task_ID == id);
+                if (task == null)
+                {
+                    task = db.Tasks.Create();
+                    db.Tasks.Add(task);
+                    db.SaveChanges();
+                }
             }
             else
             {
@@ -539,19 +898,19 @@ namespace WorkloadTest.Controllers
                     combined.ReplaceText("%Analyst%", analystName);
                     combined.ReplaceText("%Paths%", pathString ?? " ");
                 }
-                MemoryStream ms = new MemoryStream();
-                combined.SaveAs(ms);
-                Response.Clear();
-                Response.AddHeader("content-disposition", "attachment; filename=\"" + "DFGFDG" + ".doc\"");
-                Response.ContentType = "application/msword";
+                //MemoryStream ms = new MemoryStream();
+                //combined.SaveAs(ms);
+                //Response.Clear();
+                //Response.AddHeader("content-disposition", "attachment; filename=\"" + "DFGFDG" + ".doc\"");
+                //Response.ContentType = "application/msword";
 
-                ms.WriteTo(Response.OutputStream);
-                Response.End();
-                return Json(Response, JsonRequestBehavior.AllowGet);
-                //var filenamePath = HttpContext.Server.MapPath("~/DocOutput/coverPage.docx");
-                //combined.SaveAs(filenamePath);
+                //ms.WriteTo(Response.OutputStream);
+                //Response.End();
+                //return Json(Response, JsonRequestBehavior.AllowGet);
+                var filenamePath = HttpContext.Server.MapPath("~/DocOutput/coverPage.docx");
+                combined.SaveAs(filenamePath);
 
-                //return Json("~/DocOutput/coverPage.docx", JsonRequestBehavior.AllowGet);
+                return Json("~/DocOutput/coverPage.docx", JsonRequestBehavior.AllowGet);
                 //return File(Response.ToString(), "application/x-ms-excel", "test.docx");
             }
 
@@ -619,7 +978,8 @@ namespace WorkloadTest.Controllers
             Tasks tasks = db.Tasks.Find(id);
             db.Tasks.Remove(tasks);
             db.SaveChanges();
-            return RedirectToAction("Index");
+            var lastID = db.Tasks.Max(x => x.Task_ID);
+            return RedirectToAction("create", new { id = lastID });
         }
 
         public ActionResult Done(int? id)

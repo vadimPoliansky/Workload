@@ -9,9 +9,10 @@
    
         <div class="row">
             <div class="small-12 small-centered columns">
-                @Html.ActionLink("Done", "New", new { id = Model.task.Task_ID }, new { @class = "button" })
+                <button id="done" type="button">Add New Event</button>
                 <button id="createFrontPage" type="button">Front Page</button>
-                @Html.ActionLink("Delete", "Delete", new { id = Model.task.Task_ID }, new { @class = "button" })
+                <button id="delete" type="button">Delete</button>
+                @*Html.ActionLink("Delete", "Delete", new { id=Model.task.Task_ID }, new { @class = "button" })*@
             </div>
         </div>
         <div class="row collapse">
@@ -370,6 +371,19 @@
             }
         });
 
+        $('#delete').on('click',function(){
+            window.location.href = "/task/delete?id=" + "@Model.task.Task_ID";
+        });
+
+        $('#done').on('click',function(){
+            window.location.href = "/task/create";
+        });
+
+        console.log (window.isPopup);
+        if(window.isPopup){
+            document.getElementById('#done').style.display = "none";
+        };
+
         $('#createFrontPage').on('click', function(){
             var allInstances = [];
             var dataSourcePath = document.getElementById('Data_Source').value ? document.getElementById('Data_Source').value : "";
@@ -430,10 +444,11 @@
                 data: JSON.stringify(parameters),
                 contentType: 'application/json; charset=utf-8',
                 success: function (retData) {
-                    var iframe = document.createElement("iframe");
-                    iframe.setAttribute("src", retData.url);
-                    iframe.setAttribute("style", "display: none");
-                    document.body.appendChild(iframe);
+                    //var iframe = document.createElement("iframe");
+                    //iframe.setAttribute("src", retData.url);
+                    //iframe.setAttribute("style", "display: none");
+                    //document.body.appendChild(iframe);
+                    window.location.href = '/../../DocOutput/coverPage.docx'
                 },
                 error: function (request) {
                 }
@@ -529,9 +544,39 @@
                 contentType: 'application/json; charset=utf-8',
                 success: function (result) {
                     document.getElementById("Instance_" + instance).setAttribute("Exception_ID",result.Exception_ID);
+                    document.getElementById("List_" + instance).style.backgroundColor = "red";
                 },
                 error: function (request) {
                     document.getElementById("Instance_" + instance).setAttribute("Exception_ID",result.Exception_ID);
+                    document.getElementById("List_" + instance).style.backgroundColor = "red";
+                }
+            });
+        }
+
+        function deleteDrop(instance){
+            var parameters = [];
+            var exceptionID = document.getElementById('Instance_' + instance).getAttribute("Exception_ID");
+            parameters.push({
+                Exception_ID: exceptionID,
+            });
+            $.ajax({
+                url: "@Url.Action("deleteDrop", "Task")",
+                type: 'POST',
+                data: JSON.stringify(parameters),
+                contentType: 'application/json; charset=utf-8',
+                success: function (result) {
+                    document.getElementById("Instance_" + instance).setAttribute("Exception_ID",'null');
+                    document.getElementById("Task_Date_" + instance).value = "";
+                    document.getElementById("Canceled_" + instance).checked = false;
+                    document.getElementById("Comment_" + instance).value = "";
+                    document.getElementById("List_" + instance).style.backgroundColor = "";
+                },
+                error: function (request) {
+                    document.getElementById("Instance_" + instance).setAttribute("Exception_ID",'null');
+                    document.getElementById("Task_Date_" + instance).value = "";
+                    document.getElementById("Canceled_" + instance).checked = false;
+                    document.getElementById("Comment_" + instance).value = "";
+                    document.getElementById("List_" + instance).style.backgroundColor = "";
                 }
             });
         }
@@ -544,11 +589,13 @@
                     var exceptionID = data[i].Exception_ID || null;
                     var fieldset = document.createElement('fieldset');
                     var entry = document.createElement('li');
+                    entry.id = "List_" + i;
                     entry.setAttribute("Routine",1);
                     var date = new Date(parseInt(data[i].Task_Date.substr(6)));
                     if (!!data[i].New_Task_Date){
                         var newDate = new Date(parseInt(data[i].New_Task_Date.substr(6)));
                         newDate = newDate.format("mmmm dd, yyyy")
+                        entry.style.backgroundColor = "red";
                     } else {
                         var newDate = null;
                     }
@@ -600,15 +647,26 @@
                         drop(date, instance);
                     }
 
+                    var revertIcon = document.createElement('span');
+                    revertIcon.className = 'fa fa-times';
+                    revertIcon.style = "margin-left:320px; margin-right:0;";
+                    revertIcon.onclick = function(){
+                        instance = this.parentNode.getAttribute("Instance_ID");
+                        deleteDrop(instance)
+                    }
+
+
                     //var childText = document.createTextNode(
                     //date.format("mmmm dd, yyyy")
                     //);
                     var originalDate = document.createElement('span');
+                    originalDate.style.fontSize= "larger";
                     originalDate.className ='label';
                     originalDate.innerHTML = date.format("mmmm dd, yyyy");
                     originalDate.id = "Original_Task_Date_" + i;
 
                     child.appendChild(originalDate);
+                    child.appendChild(revertIcon);
                     child.appendChild(task_date);
                     child.appendChild(canceled);
                     child.appendChild(canceledLabel);

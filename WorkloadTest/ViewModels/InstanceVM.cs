@@ -15,12 +15,14 @@ namespace WorkloadTest.ViewModels
         public int? CoE_ID { get; set; }
         public CoEs CoE { get; set; }
         public int? Analyst_ID { get; set; }
+        public Analysts Analyst { get; set; }
 
         public string Description { get; set; }
         public string Purpose { get; set; }
         public string Requestor { get; set; }
         public double? Workload { get; set; }
         public int? Workload_Unit_ID { get; set; }
+        public Workload_Units Workload_Unit { get; set; }
         public string Comment { get; set; }
 
         public DateTime? Request_Date { get; set; }
@@ -37,9 +39,14 @@ namespace WorkloadTest.ViewModels
 
         public int Instance { get; set; }
         public DateTime? Task_Date { get; set; }
+        public string Task_Date_Time { get; set; }
+
         public DateTime? Task_Date_From { get; set; }
+
         public string Instance_Comment { get; set; }
         public int Exception_ID { get; set; }
+
+        public bool Rescheduled { get; set; }
     }
 
     public class InstanceListViewModel
@@ -48,6 +55,7 @@ namespace WorkloadTest.ViewModels
         public List<Analysts> allAnalysts { get; set; }
         public List<Workload_Units> allWorkload_Units { get; set; }
         public List<CoEs> allCoEs { get; set; }
+        public List<Time_Of_Days> allTime_Of_Days { get; set; }
 
     }
 }

@@ -56,6 +56,10 @@
 <script type="text/javascript">
     $(document).ready(function () {
 
+        if (window.isPopup === true) {
+            window.close();
+        }
+
         $('.deleteButton').on('click', function (e) {
             var id = $(this).attr('deleteid');
             $(id).remove();

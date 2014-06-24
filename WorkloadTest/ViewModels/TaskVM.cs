@@ -40,6 +40,7 @@ namespace WorkloadTest.ViewModels
         public string Analyst { get; set; }
         public string CoE { get; set; }
         public string Period { get; set; }
+        public string Workload_Unit { get; set; }
     }
 
     public class TaskListViewModel

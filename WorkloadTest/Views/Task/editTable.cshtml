@@ -12,6 +12,8 @@
 <script type="text/javascript" src="../../Scripts/jquery.handsontable.full.js"></script>
 <script src="~/Scripts/jquery.simplemodal.1.4.4.min.js"></script>
 <link rel="stylesheet" media="screen" href="../../Scripts/jquery.handsontable.full.css" />
+<script src='../../Scripts/date.format.js'></script>
+<script src='../../Scripts/date.js'></script>
 
 
 <script type="text/javascript">
@@ -66,13 +68,13 @@
             data: values,
             startRows: 1,
             startCols: 1,
-            rowHeaders: true,
+            rowHeaders: false,
             colHeaders: true,
             strechH: 'all',
             strechW: 'all',
             scrollH: 'auto',
             scrollV: 'auto',
-            colWidths: [100, 100, 100, 200, 200, 200, 200, 100, 100, 100, 300, 300, 300, 300, 300, 300, 300, 300, 300, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 100, 1000, 1000, 1000],
+            colWidths: [100, 100, 100, 50, 200, 200, 200, 50, 100, 300, 300, 300, 300, 100, 50, 50, 100, 50],
             width: function () {
                 if (maxed && availableWidth === void 0) {
                     calculateSize();
@@ -88,8 +90,9 @@
             fixedRowsTop: 0,
             fixedColumnsLeft: 1,
             manualColumnResize: true,
-            minSpareRows: 0,
+            minSpareRows: 1,
             contextMenu: true,
+            contextMenu: ['remove_row'],
             colHeaders: [
                 "ID",
                 '<i class="fa fa-filter"></i>CoE',
@@ -99,12 +102,12 @@
                 "Purpose",
                 "Requestor",
                 "Workload",
-                "Workload_Unit_ID",
-                "Data_Source",
+                "Workload_Unit",
                 "Comment",
+                "Data_Source",
                 "Report_Location",
                 "Request_Date",
-                "Start_Date",
+                "Due_Date",
                 "Routine",
                 "Repeat Every",
                 "Period",
@@ -117,7 +120,6 @@
                         $.ajax({
                             url: 'getCoEs',
                             success: function (response) {
-                                console.log("response", response);
                                 process(response);
                             }
                         });
@@ -128,24 +130,33 @@
                         $.ajax({
                             url: 'getAnalysts',
                             success: function (response) {
+                                process(response);
+                            }
+                        });
+                    }
+                },
+                { data: "Priority", type:'autocomplete', strict: true, source: function(query, process){ process(["true","false"])} },
+                { data: "Description" },
+                { data: "Purpose" },
+                { data: "Requestor" },
+                { data: "Workload" },
+                { data: "Workload_Unit", type:'autocomplete', strict: true, 
+                    source: function (query, process) {
+                        $.ajax({
+                            url: 'getWorkload_Units',
+                            success: function (response) {
                                 console.log("response", response);
                                 process(response);
                             }
                         });
                     }
                 },
-                { data: "Priority", type:'autocomplete', strict: true, source: ["true", "false"] },
-                { data: "Description" },
-                { data: "Purpose" },
-                { data: "Requestor" },
-                { data: "Workload" },
-                { data: "Workload_Unit_ID" },
-                { data: "Data_Source" },
                 { data: "Comment"},
+                { data: "Data_Source" },
                 { data: "Report_Location" },
                 { data: "Request_Date" },
                 { data: "Start_Date"},
-                { data: "Routine" },
+                { data: "Routine", type:'autocomplete', strict: true, source: function(query, process){ process(["true","false"])} },
                 { data: "Frequency" },
                 { data: "Period", type:'autocomplete', strict: true, 
                     source: function (query, process) {
@@ -165,49 +176,122 @@
                     return;
                 } else {
                     for (var i = 0; i < change.length; ++i) {
+                        $example1.handsontable('updateSettings', {
+
+                            cells: function (row, col, prop) {
+                                var cellProperties = {};
+                                if (prop === "Period" || prop === "Frequency" || prop === "Count"){
+                                    console.log($example1.handsontable('getDataAtRowProp', row, 'Routine'));
+                                    if($example1.handsontable('getDataAtRowProp', row, 'Routine') === false || 
+                                        $example1.handsontable('getDataAtRowProp', row, 'Routine') === "false"){
+                                        cellProperties.renderer = greyOut;
+                                    }
+                                }
+                                return cellProperties;
+                            }
+
+                        });
                         updateIndicator(change, i);
                     }
                 }
             },
-            afterCreateRow: function(index, amount){
-                addTask(index);
-            },
             beforeRemoveRow : function(index, amount){
                 deleteTask( $example1.handsontable('getDataAtCell',index,0));
             },
+            cells: function (row, col, prop) {
+                var cellProperties = {};
+                if (prop === "Period" || prop === "Frequency" || prop === "Count"){
+                    console.log($example1.handsontable('getDataAtRowProp', row, 'Routine'));
+                    if($example1.handsontable('getDataAtRowProp', row, 'Routine') === false){
+                        cellProperties.renderer = greyOut;
+                    }
+                }
+                return cellProperties;
+            }
         });
+
+        function greyOut(instance, td, row, col, prop, value, cellProperties){
+            Handsontable.renderers.TextRenderer.apply(this, arguments);
+            td.style.background = 'gray';
+            td.style.color = 'gray';
+        }
+
+        function getDate(date, format) {
+            if (date !== ""){
+                var parsedDate = Date.parse(date.toString()).toString();
+                var realValue = new Date(parsedDate);
+                return realValue.format(format);
+            }else{
+                return null;
+            }
+        }
 
         function updateIndicator(change, i){
             var changedRow = change[i][0]
             var changedParameter = change[i][1];
             var changedValue = change[i][3];
+            if (changedParameter === "Start_Date" || changedParameter === "Request_Date"){
+                if(changedValue != getDate(changedValue.trim(), "yyyy-mm-dd")){
+                    changedValue = getDate(changedValue.trim(), "yyyy-mm-dd");
+                    $example1.handsontable('setDataAtRowProp',change[i][0],changedParameter, changedValue)
+                    return;
+                }
+            }
+            if (changedParameter === "Routine" || changedParameter === "Priority"){
+                if(changedValue !== "false" || changedValue !== "true" ){
+                    if (changedValue === 'f'){
+                        changedValue = "false";
+                        $example1.handsontable('setDataAtRowProp',change[i][0],changedParameter, changedValue)
+                        return;
+                    }
+                    if (changedValue === 't'){
+                        changedValue = "true";
+                        $example1.handsontable('setDataAtRowProp',change[i][0],changedParameter, changedValue)
+                        return;
+                    }
+                }
+            }
             if (changedParameter !== "Task_ID"){
                 $.get('@Url.Action("/editTable")', {taskID : $example1.handsontable('getDataAtCell',change[i][0],0)}, function (data) {
-                    var newValue = data;
-                    var parameters = []
-                    parameters.push({
-                        Task_ID: (changedParameter=="Task_ID" ?  parseInt(changedValue) : newValue[0].Task_ID),
-                        Routine: (changedParameter=="Routine" ? parseInt(changedValue): newValue[0].Routine),
-                        Priority:(changedParameter=="Priority" ? changedValue : newValue[0].Priority),
-                        Description:(changedParameter=="Description" ? changedValue : newValue[0].Description),
-                        Purpose:(changedParameter=="Purpose" ? changedValue : newValue[0].Purpose),
-                        Requestor:(changedParameter=="Requestor" ? changedValue : newValue[0].Requestor),
-                        Workload:(changedParameter=="Workload" ? changedValue : newValue[0].Workload),
-                        Workload_Unit_ID:(changedParameter=="Workload_Unit_ID" ? changedValue : newValue[0].Workload_Unit_ID),
-                        Comment:(changedParameter=="Comment" ? changedValue : newValue[0].Comment),
-                        Data_Source:(changedParameter=="Data_Source" ? changedValue : newValue[0].Data_Source),
-                        Report_Location:(changedParameter=="Report_Location" ? changedValue : newValue[0].Report_Location),
-                        Start_Date:(changedParameter=="Start_Date" ? changedValue : newValue[0].Start_Date),
-                        Request_Date:(changedParameter=="Request_Date" ? changedValue : newValue[0].Request_Date),
-                        Count:(changedParameter=="Count" ? changedValue : newValue[0].Count),
-                        Frequency:(changedParameter=="Frequency" ? changedValue : newValue[0].Frequency),
-                        Period_ID:(changedParameter=="Period_ID" ? changedValue : newValue[0].Period_ID),
-                        User_Added:(changedParameter=="User_Added" ? changedValue : newValue[0].User_Added),
-                        Date_Added:(changedParameter=="Date_Added" ? changedValue : newValue[0].Date_Added),
-                        Saved:(changedParameter=="Saved" ? changedValue : newValue[0].Saved),
-                        Analyst:(changedParameter=="Analyst" ? changedValue : newValue[0].Analyst),
-                        CoE:(changedParameter=="CoE" ? changedValue : newValue[0].CoE),
-                    })
+                    var newValue = data[0];
+                    if (newValue == null){
+                        var parameters = [];
+                        var field = ({});
+                        field[changedParameter] = changedValue;
+                        field['Task_ID'] = data;
+                        parameters.push(field);
+                        console.log(parameters)
+                        $example1.handsontable('setDataAtRowProp',changedRow, "Task_ID", data);
+                        $example1.handsontable('setDataAtRowProp',changedRow, "Routine", "false");
+                        $example1.handsontable('setDataAtRowProp',changedRow, "Priority", "false");
+                    } else {
+                        var parameters = []
+                        parameters.push({
+                            Task_ID: (changedParameter=="Task_ID" ?  parseInt(changedValue) : newValue.Task_ID),
+                            Routine: (changedParameter=="Routine" ? changedValue: newValue.Routine),
+                            Priority:(changedParameter=="Priority" ? changedValue : newValue.Priority),
+                            Description:(changedParameter=="Description" ? changedValue : newValue.Description),
+                            Purpose:(changedParameter=="Purpose" ? changedValue : newValue.Purpose),
+                            Requestor:(changedParameter=="Requestor" ? changedValue : newValue.Requestor),
+                            Workload:(changedParameter=="Workload" ? changedValue : newValue.Workload),
+                            Workload_Unit_ID:(changedParameter=="Workload_Unit_ID" ? changedValue : newValue.Workload_Unit_ID),
+                            Comment:(changedParameter=="Comment" ? changedValue : newValue.Comment),
+                            Data_Source:(changedParameter=="Data_Source" ? changedValue : newValue.Data_Source),
+                            Report_Location:(changedParameter=="Report_Location" ? changedValue : newValue.Report_Location),
+                            Start_Date:(changedParameter=="Start_Date" ? changedValue : newValue.Start_Date),
+                            Request_Date:(changedParameter=="Request_Date" ? changedValue : newValue.Request_Date),
+                            Count:(changedParameter=="Count" ? changedValue : newValue.Count),
+                            Frequency:(changedParameter=="Frequency" ? changedValue : newValue.Frequency),
+                            Period_ID:(changedParameter=="Period_ID" ? changedValue : newValue.Period_ID),
+                            Period:(changedParameter=="Period" ? changedValue : newValue.Period),
+                            User_Added:(changedParameter=="User_Added" ? changedValue : newValue.User_Added),
+                            Date_Added:(changedParameter=="Date_Added" ? changedValue : newValue.Date_Added),
+                            Saved:(changedParameter=="Saved" ? changedValue : newValue.Saved),
+                            Analyst:(changedParameter=="Analyst" ? changedValue : newValue.Analyst),
+                            CoE:(changedParameter=="CoE" ? changedValue : newValue.CoE),
+                            Workload_Unit:(changedParameter=="Workload_Unit" ? changedValue : newValue.Workload_Unit),
+                        })
+                    }
                     $.ajax({
                         url: this.action,
                         type: 'POST',
@@ -286,6 +370,16 @@
 
 <style>
 
+  .handsontable table th, .handsontable table td {
+       overflow: hidden;
+       text-overflow: ellipsis;
+       white-space: nowrap;
+       height:50px !important;
+       min-height:50px !important;
+       max-height:50px !important;
+  }
+
+
     .simplemodal-close {
         background:#0094ff;
     }
@@ -300,9 +394,7 @@
         color:white;
     }
 
-    .wtSpreader {
-        height:500px !important;
-    }
+
 
 
 
@@ -315,6 +407,11 @@
 
     .inner-wrap {
         padding-bottom:10px;
+    }
+
+    .handle {
+        color:black !important;
+        background-color:black !important;
     }
 
 </style>

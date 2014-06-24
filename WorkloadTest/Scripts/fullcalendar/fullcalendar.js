@@ -926,6 +926,7 @@ function EventManager(options, _sources) {
 	t.fetchEvents = fetchEvents;
 	t.addEventSource = addEventSource;
 	t.removeEventSource = removeEventSource;
+	t.removeAllEventSource = removeAllEventSource;
 	t.updateEvent = updateEvent;
 	t.renderEvent = renderEvent;
 	t.removeEvents = removeEvents;
@@ -1133,6 +1134,13 @@ function EventManager(options, _sources) {
 			return !isSourcesEqual(e.source, source);
 		});
 		reportEvents(cache);
+	}
+
+	function removeAllEventSource() {
+	    sources.length = 0
+	    // remove all client events from that source
+	    cache.length = 0
+
 	}
 	
 	
@@ -4925,6 +4933,8 @@ function AgendaEventRenderer() {
 		}
 		html +=
 			" class='" + classes.join(' ') + "'" +
+            " analyst_id='" + event.analyst_id + "'" +
+            " coe_id='" + event.coe_id + "'" +
 			" style=" +
 				"'" +
 				"position:absolute;" +
@@ -4934,8 +4944,8 @@ function AgendaEventRenderer() {
 				"'" +
 			">" +
 			"<div class='fc-event-inner'>" +
-			"<div class='fc-event-time'>" +
-			htmlEscape(formatDates(event.start, event.end, opt('timeFormat'))) +
+			(event.priority === "True" ? "<div class='fc-event-time fc-event-priority'>" : "<div class='fc-event-time'>") +
+			htmlEscape(event.task_id) +
 			"</div>" +
 			"<div class='fc-event-title'>" +
 			htmlEscape(event.title || '') +
@@ -6301,6 +6311,8 @@ function DayEventRenderer() {
 		}
 		html +=
 			" class='" + classNames.join(' ') + "'" +
+            " analyst_id='" + event.analyst_id + "'" +
+            " coe_id='" + event.coe_id + "'" +
 			" style=" +
 				"'" +
 				"position:absolute;" +
@@ -6311,9 +6323,9 @@ function DayEventRenderer() {
 			"<div class='fc-event-inner'>";
 		if (!event.allDay && segment.isStart) {
 			html +=
-				"<span class='fc-event-time'>" +
+				(event.priority === "True" ? "<span class='fc-event-time fc-event-priority'>" : "<span class='fc-event-time'>") +
 				htmlEscape(
-					formatDates(event.start, event.end, opt('timeFormat'))
+					event.task_id
 				) +
 				"</span>";
 		}

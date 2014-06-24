@@ -11,13 +11,25 @@
 <link href='../../Scripts/fullcalendar/fullcalendar.print.css' rel='stylesheet' media='print' />
 <script src='../../Scripts/fullcalendar/jquery.min.js'></script>
 <script src='../../Scripts/fullcalendar/jquery-ui.custom.min.js'></script>
-<script src='../../Scripts/fullcalendar/fullcalendar.min.js'></script>
+<script src='../../Scripts/fullcalendar/fullcalendar.js'></script>
 <script src='../../Scripts/date.format.js'></script>
 <script src='../../Scripts/date.js'></script>
 
 <style>
 
-	body {
+    .fc-content {
+        width:100% !important;
+    }
+
+    .fc-event-time {
+        font-size:small !important;
+        font-weight:bold !important;
+    }
+    .fc-event-priority {
+        background-color:red !important;
+    }
+
+    body {
 		text-align: center;
 		font-size: 14px;
 	}
@@ -33,16 +45,15 @@
 
     .fc-button {
         background-image:none !important;
+                -webkit-border-radius: 0px !important;
+        -moz-border-radius: 0px !important;
+        border-radius: 0px !important;
     }
 
     .fc-day-number {
         font-size:large !important;
+        padding-top:5px !important;
     }
-
-    .fc-day {
-        border:0 !important;
-    }
-
 
     .fc-event {
         -webkit-border-radius: 0px !important;
@@ -55,11 +66,89 @@
         width:100% !important;
     }
 
+    .calendarFilterHeader {
+        color:black;
+        border-bottom:1px solid lightgray;
+    }
+
+        .calendarFilterItem {
+        color:black;
+        font-weight:300;
+        font-size:small;
+    }
+
+    .fc-border-separate {
+        border:0px !important;
+    }
+
+    .fc-year-weekly-head {
+        border:0px;
+        font-weight:200;
+        background-color:#0094ff;
+        color:white;
+        padding:7px !important;
+    }
+
+
+    .fc-day-header {
+        border:0px;
+        font-weight:200;
+        background-color:#0094ff;
+        color:white;
+        padding:15px !important;
+    }
+
+    .fc-day {
+        border-bottom:1px solid black !important;
+    }
+
+    .fc-widget-header {
+        border:0px;
+        font-weight:200;
+        background-color:#0094ff;
+        color:white;
+        padding:7px !important;
+        border-right:1px solid lightblue !important;
+    }
+
+    table tr:nth-of-type(2n) {
+        background:none;
+    }
+
+    .fc-event-coe1, .fc-event-analyst1{
+        background-color: rgb(14, 0, 144);
+        border:1px solid rgb(7, 0, 100);
+    }
+    .fc-event-coe2, .fc-event-analyst2{
+        background-color: rgb(144, 0, 0);
+        border:1px solid rgb(100, 0, 0);
+    }
+    .fc-event-coe3, .fc-event-analyst4{
+        background-color: rgb(0, 144, 67);
+        border:1px solid rgb(0, 100, 50);
+    }
+    .fc-event-coe4, .fc-event-analyst5{
+        background-color: rgb(155, 0, 155);
+        border:1px solid rgb(111, 0, 111);
+    }
+    .fc-event-coe5, .fc-event-analyst7{
+        background-color: rgb(0, 153, 153);
+        border:1px solid rgb(0, 111, 111);
+    }
+    .fc-event-coe6 {
+        background-color: rgb(154, 92, 0);
+        border:1px solid rgb(111, 70, 0);
+    }
+    .fc-event-coe7 {
+        background-color: rgb(51, 154, 0);
+        border:1px solid rgb(40, 111, 0);
+    }
+   
 </style>
 
-
+<!--style="padding:0px;margin-right:-50px;margin:0;"-->
     <br />
-<div class="row">
+<div class="row" >
     <div class ="small-10 columns">
     <div style="margin-right:10%"id='calendar'></div>
     
@@ -73,29 +162,30 @@
             "RGB(51, 154, 0)",
         };}
     </div>
-    <div class="small-2 columns">
-    <input class="button" id="switchColor" value="Color by CoE"></input>
-    <div id="coeColors">
+    <div class ="small-2 columns">
+    <ul class="fa-ul" style="text-align:left;">
+    <label class="calendarFilterHeader" id="switchColorCoE"><i class="fa fa-filter"></i> View by CoE</label>
+    <div id="coeColors" style="display:none">
     @{
         var k =0;
         foreach(var coe in Model.allCoEs){
-            <div class="row"><div class="small-12 columns small-centered">
-            <ul style="color:white;background-color:@colors[k]" >@coe.CoE</ul>
-            </div></div>
+            <li class="calendarFilterItem filterItemCalendar" filterID="@coe.CoE_ID" field="coeID"><i class="fa fa-square" style="color:@colors[k] !important" ></i>@coe.CoE</li>
             k++;
         }
+        <li class="calendarFilterItem filterItemCalendar" filterID="" field="coeID"><i class="fa fa-eraser"></i>Clear</li>
     }
     </div>
-    <div id="analystColors">
+    <br />
+    <label class="calendarFilterHeader" id="switchColorAnalyst"><i class="fa fa-filter"></i> View by Analyst</label>
+    <div id="analystColors" style="display:none">
     @{
 
         var l =0;
         foreach(var analyst in Model.allAnalysts){
-            <div class="row"><div class="small-12 columns small-centered">
-            <ul style="color:white;background-color:@colors[l]" >@analyst.Last_Name,@analyst.First_Name</ul>
-            </div></div>
+            <li class="calendarFilterItem filterItemCalendar" filterID="@analyst.Analyst_ID" field="analystID"><i class="fa fa-square" style="color:@colors[l] !important" ></i>@analyst.Last_Name,@analyst.First_Name</li>
             l++;
         }
+        <li class="calendarFilterItem filterItemCalendar" filterID="" field="analystID"><i class="fa fa-eraser"></i>Clear</li>
     }
     </div>
     </div>
@@ -105,6 +195,19 @@
     <script>
 
         $(document).ready(function ($) {
+
+            $('.filterItemCalendar').on('click',function(){
+                $('#calendar').fullCalendar('removeAllEventSource');
+                $('#calendar').fullCalendar('addEventSource',{
+                    url: 'taskList?' + $(this).attr('field') + "=" + $(this).attr('filterID'),
+                    async:false,
+                });
+                if($(this).attr('field') === 'coeID'){
+                    colorCoE();
+                } else if($(this).attr('field') === 'analystID') {
+                    colorAnalyst();
+                }
+            });
 
             function getDate(date, format) {
                 if (date !== ""){
@@ -116,14 +219,16 @@
                 }
             }
 
-            var currFilter = 1;
-            document.getElementById('analystColors').style.display = "none";
+            //var currFilter = 1;
+            //document.getElementById('analystColors').style.display = "none";
 
             var colors = [
                 @foreach(var color in colors){
                     @:"@color",
                 }
             ];
+
+            var currFilter = "";
 
             var eventColorsCoE = {
                 @{var i=0;
@@ -140,7 +245,43 @@
                 }}
             }
 
-            $("#switchColor").on('click',function(){
+            //$('#switchColorCoE').on("click",function(){
+            $(document).on('click','#switchColorCoE',function(){
+                colorCoE();
+                currFilter = "CoE";
+            });
+
+            //$('#switchColorCoE').on("click",function(){
+            $(document).on('click','#switchColorAnalyst',function(){
+                colorAnalyst();
+                currFilter = "Analyst";
+            });
+
+            function colorCoE(){
+                document.getElementById('coeColors').style.display = "block";
+                document.getElementById('analystColors').style.display = "none";
+                $('.fc-event').each(function(index){
+                    $(this).removeClass (function (index, css) {
+                        return (css.match (/\bfc-event-analyst\S+/g) || []).join(' ');
+                    });
+                    var coeID = $(this).attr('coe_id');
+                    $(this).addClass('fc-event-coe' + coeID);
+                });
+            };
+
+            function colorAnalyst(){
+                document.getElementById('coeColors').style.display = "none";
+                document.getElementById('analystColors').style.display = "block";
+                $('.fc-event').each(function(index){
+                    $(this).removeClass (function (index, css) {
+                        return (css.match (/\bfc-event-coe\S+/g) || []).join(' ');
+                    });
+                    var coeID = $(this).attr('analyst_id');
+                    $(this).addClass('fc-event-analyst' + coeID);
+                });
+            };
+
+            /*$("#switchColor").on('click',function(){
                 var events = $('#calendar').fullCalendar('clientEvents');
                 for (var i in events)
                 {
@@ -173,7 +314,7 @@
                     document.getElementById('coeColors').style.display = "block";
                     document.getElementById('analystColors').style.display = "none";
                 }
-            });
+            });*/
 
             $('#calendar').fullCalendar({
                 header: {
@@ -182,34 +323,51 @@
                     right: 'year,month,agendaWeek,agendaDay'
                 },
                 editable: true,
-                height: $( document ).height() *0.93,
-                events: [
-                @foreach (var task in Model.allInstances)
+                height: $( document ).height() *0.90,
+                eventSources: [
+                            {
+                                url: 'taskList', // use the `url` property
+                            }
+                ],
+                @*foreach (var task in Model.allInstances)
                 {
                     if (task.Task_Date != null)
                     {
-                        var allDay = "true";
                         string coe = "";
                         if (task.CoE_ID.Value != null) {
                             coe = task.CoE.CoE_Abbr;
                         }
+                        string endTime;
+                        switch(task.Task_Date_Time){
+                            case "Morn":
+                                endTime = "12:30:00 AM";
+                                break;
+                            case "Aftr":
+                                endTime = "01:00:00  AM";
+                                break;
+                            case "End":
+                            default:
+                                endTime = "01:30:00  AM";
+                                break;
+                                
+                        }
                         <text>
 				        {
-				            title: "@task.Task_ID: @coe - @task.Description",
-				            start: '@task.Task_Date_From.Value.Year - @task.Task_Date_From.Value.Month - @task.Task_Date_From.Value.Day',
-				            end: '@task.Task_Date.Value.Year - @task.Task_Date.Value.Month - @task.Task_Date.Value.Day',
+				            title: "@coe - @task.Description",
+				            start: '@task.Task_Date_From.Value.Year - @task.Task_Date_From.Value.Month - @task.Task_Date_From.Value.Day 12:00:00 AM',
+				            end: '@task.Task_Date.Value.Year - @task.Task_Date.Value.Month - @task.Task_Date.Value.Day @endTime',
 				            task_id: "@task.Task_ID",
 				            instance_id: "@task.Instance",
 				            comment: "@task.Instance_Comment",
-				            allDay: @allDay,
 				            analyst_id: "@task.Analyst_ID",
 				            coe_id: "@task.CoE_ID",
 				            color: eventColorsCoE.Color_@task.CoE_ID,
+				            priority: "@task.Priority",
 				        },
                         </text>
                     }
                 }
-                ],
+                ],*@
                 editable: true,
                 eventDrop: function (event, dayDelta, minuteDelta, allDay, revertFunc) {
                     updateDrop(event, false)
@@ -220,8 +378,26 @@
                 eventClick: function(calEvent, jsEvent, view) {
                     //url = "@Url.Action("Create", "Task", new {id = "XXX"})";
                     //url = url.replace( "XXX", calEvent.task_id);
-                    window.location.href = "/task/create?id=" + calEvent.task_id;
+                    //window.location.href = "/task/create?id=" + calEvent.task_id;
+                    var win = window.open("/task/create?id=" + calEvent.task_id, "Edit", "width=1200,height=600,scrollbars=yes,resizable=no");
+                    win.isPopup = true;
+                    var pollTimer = window.setInterval(function() {
+                        if (win.closed !== false) { // !== is required for compatibility with Opera
+                            window.clearInterval(pollTimer);
+                            console.log("close");
+                            $('#calendar').fullCalendar( 'refetchEvents' )
+                            $('#calendar').fullCalendar( 'rerenderEvents' );
+                            setTimeout(function(){
+                                if (currFilter === "CoE"){
+                                    colorCoE();
+                                } else if (currFilter === "Analyst"){
+                                    colorAnalyst();
+                                }
+                            }, 500);
+                        }
+                    }, 200);
                 },
+                scrollTime:'04:00:00',
             });
 
             function updateDrop(event, resize) {
@@ -247,11 +423,26 @@
                             workloadDays = null;
                         }
                     }
+                    var time = event.end.format("hh:MM:ss");
+                    var timeOfDayID;
+                    switch(time){
+                        case "12:30:00":
+                            timeOfDayID=1;
+                            break;
+                        case "01:00:00":
+                            timeOfDayID=2;
+                            break;
+                        case "01:30:00":
+                        default:
+                            timeOfDayID=3;
+                            break;
+                    };
                     var parameters = [];
                     parameters.push({
                         Task_ID: parseInt(event.task_id),
                         Instance_ID: parseInt(event.instance_id),
                         Date: newDate,
+                        Time_Of_Day_ID: timeOfDayID,
                         Canceled: false,
                         Comment: comment,
                         Exception_ID: exception_id,
@@ -270,6 +461,48 @@
                     });
                 });
             }
+            $(".fc-button").on('click',function(){
+                if($(this).hasClass('fc-button-agendaWeek') || $(this).hasClass('fc-button-agendaDay')){
+                    for (i = 0; i <= 3; i++){
+                        $(".fc-slot" + i).css('height','200px');
+                    }
+                    for (i = 4; i <= 50; i++){
+                        $(".fc-slot" + i).hide();
+                    }
+                    $('#calendar').fullCalendar( 'rerenderEvents' );
+                    $(".fc-view").children().eq(1).children().eq(3).css('overflow-y','hidden');
+                    $(".fc-view").children().eq(1).children().eq(3).css('overflow-y','hidden');
+                    $(".fc-view").children().eq(1).children().eq(3).children().eq(0).css('height','600px');
+                    $(".fc-view").css('height','649px').css('oveflow','hidden');
+                    $(".fc-agenda-axis").each(function(index){
+                        if(index === 3){
+                            this.textContent="Mor";
+                        } else if (index===4){
+                            this.textContent="Aftr";
+                        } else if (index ===5){
+                            this.textContent="End";
+                        }
+                    });
+                    $(".fc-agenda-allday").hide();
+                    $(".fc-agenda-divider-inner").hide();
+                }
+                setTimeout(function(){
+                    if (currFilter === "CoE"){
+                        colorCoE();
+                    } else if (currFilter === "Analyst"){
+                        colorAnalyst();
+                    }
+                }, 500);
+            });
+
+            setInterval(function(){
+                if (currFilter === "CoE"){
+                    colorCoE();
+                } else if (currFilter === "Analyst"){
+                    colorAnalyst();
+                }
+            }, 1000);
+            
         });
 
     </script>
