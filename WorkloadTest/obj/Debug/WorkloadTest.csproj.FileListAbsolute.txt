@@ -464,3 +464,5 @@ C:\Users\mnurvep\Desktop\AspNet\WorkloadTestV2\WorkloadTest\bin\ClosedXML.dll
 C:\Users\mnurvep\Desktop\AspNet\WorkloadTestV2\WorkloadTest\bin\DocumentFormat.OpenXml.dll
 C:\Users\mnurvep\Desktop\AspNet\WorkloadTestV2\WorkloadTest\bin\ClosedXML.xml
 C:\AspNet\WorkloadTestV3\WorkloadTestV2\WorkloadTest\bin\ClosedXML.xml
+C:\AspNet\WorkloadTestV3\WorkloadTestV2\WorkloadTest\bin\ClosedXML.dll
+C:\AspNet\WorkloadTestV3\WorkloadTestV2\WorkloadTest\bin\DocumentFormat.OpenXml.dll
