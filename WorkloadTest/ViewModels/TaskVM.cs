@@ -26,6 +26,7 @@ namespace WorkloadTest.ViewModels
         public string Report_Location { get; set; }
 
         public string Start_Date { get; set; }
+        public int? Time_Of_Day_ID { get; set; }
         public string Request_Date { get; set; }
 
         public int? Count { get; set; }
@@ -41,6 +42,7 @@ namespace WorkloadTest.ViewModels
         public string CoE { get; set; }
         public string Period { get; set; }
         public string Workload_Unit { get; set; }
+        public string Time_Of_Day { get; set; }
     }
 
     public class TaskListViewModel

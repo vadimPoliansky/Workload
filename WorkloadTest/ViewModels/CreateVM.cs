@@ -15,5 +15,6 @@ namespace WorkloadTest.ViewModels
         public List<Periods> allPeriods { get; set; }
         public List<Path_Types> allPath_Types { get; set; }
         public List<Paths> allPaths { get; set; }
+        public List<Time_Of_Days> allTimeOfDays { get; set; }
     }
 }

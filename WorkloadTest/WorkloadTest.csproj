@@ -211,6 +211,7 @@
     <Compile Include="ViewModels\TaskVM.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="App_Data\test.accdb" />
     <Content Include="ClosedXML.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
@@ -323,6 +324,9 @@
     <Content Include="App_Data\excelTemp.xlsx" />
     <None Include="Scripts\jquery-1.8.2.intellisense.js" />
     <Content Include="App_Data\logoOPEO.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\logoOPEO.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Scripts\date.format.js" />

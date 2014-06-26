@@ -14,6 +14,8 @@ namespace WorkloadTest.ViewModels
         public DateTime? New_Task_Date { get; set; }
         public bool Canceled { get; set; }
         public string Instance_Comment { get; set; }
+        public string Time_Of_Day { get; set; }
+        public string Workload_String { get; set; }
 
     }
 

@@ -23,12 +23,16 @@
             </nav>
             <aside class="left-off-canvas-menu">
                 <ul class="off-canvas-list">
-                    <li><label><a id="create"><i class="fa fa-plus-square"></i> Add</a></label></li>
-                    <li><label><a id="list"><i class="fa fa-list"></i> List</a></label></li>
-                    <li><label><a id="table"><i class="fa fa-table"></i> Table</a></label></li>
-                    <li><label><a id="data"><i class="fa fa-book"></i> Data</a></label></li>
-                    <li><label><a class="filter" field="" filterid="" href="#"><i class="fa fa-calendar"></i> Calendar</a></label></li>
-                    <li><label><i class="fa fa-calendar"></i> Filter By CoE</label></li>
+                    <li><label class="menuItems"><a id="create"><i class="fa fa-plus-square"></i> Add</a></label></li>
+                    <li><label class="menuBreak"></label></li>
+                    <li><label class="menuItems"><a id="table"><i class="fa fa-table"></i> Table</a></label></li>
+                    <li><label class="menuItems"><a class="filter" field="" filterid="" href="#"><i class="fa fa-calendar"></i> Calendar</a></label></li>
+                    <li><label class="menuBreak"></label></li>
+                    <li><label class="menuItems"><a id="data"><i class="fa fa-book"></i> Data</a></label></li>
+                    <li><label class="menuBreak"></label></li>
+                    <li><label class="menuItems"><a id="import"><i class="fa fa-upload"></i> Import</a></label></li>
+                    <li><label class="menuItems"><a id="export"><i class="fa fa-download"></i> Export Access</a></label></li>
+                    @*<li><label><i class="fa fa-calendar"></i> Filter By CoE</label></li>
                     @foreach (var coe in ViewBag.allCoes ?? Enumerable.Empty<string>())
                     {
                         <li class="canvasItems"><a class="filter" field="coeID" filterid="@coe.CoE_ID" href="#"><i class="fa fa-filter"></i> @coe.CoE_Abbr</a></li>
@@ -37,7 +41,7 @@
                     @foreach (var analyst in ViewBag.allAnalysts ?? Enumerable.Empty<string>())
                     {
                         <li class="canvasItems"><a class="filter" field="analystID" filterid="@analyst.Analyst_ID" href="#"><i class="fa fa-filter"></i> @analyst.First_Name, @analyst.Last_Name</a></li>
-                    }
+                    }*@
                 </ul>
             </aside>
             <div id="body">
@@ -85,27 +89,79 @@
         $("#data").on("click", function () {
             window.location.href = "/Task/reports"
         });
+
+        $("#export").on("click", function () {
+            window.location.href = "/Task/backupDB"
+        });
+
+        $("#import").on("click", function () {
+            window.location.href = "/"
+        });
+        
+        /*$(".left-off-canvas-toggle menu-icon").on("click", function () {
+            barHeight = $('.tab-bar').height();
+            $('.inner-wrap').css("height", $(window).height() - barHeight);
+            
+        });*/
     });
 
 </script>
 
 <style>
+    .footLabel {
+            background-color: #333;
+            width: 100%;
+            bottom: 0;
+            position: fixed;
+    }
+
+    .menuItems {
+        padding:15px !important;
+    }
+
+    .menuHeader {
+        padding:15px !important;
+        font-size:xx-large;
+    }
+
+    .menuBreak {
+        background-color:#0078cf  !important;
+    }
+
     ul {
         padding:0px;
         margin:0px;
     }
+
+    .left-small:hover {
+        background-color: #0094ff;
+    }
+
+    .left-small:active {
+        background-color: #0078cf;
+    }
+
     .canvasItems {
         background-color:#0094ff !important;
         padding-left:10px;
         border-bottom:1px solid #78c6ff;
     }
 
+    .inner-wrap {
+        height:100% !important;
+    }
+
     .left-off-canvas-menu {
         background-color:#0078cf !important;
+        height:100% !important;
     }
 
     ul.off-canvas-list li a {
         padding:0px;
         border:0px;
     }
+
+    body, html, .off-canvas-wrap.move-right, .off-canvas-wrap.move-left {
+  height: 100% !important;
+}
 </style>

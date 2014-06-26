@@ -58,6 +58,11 @@ namespace WorkloadTest.Models
         public virtual Periods Period { get; set; }
         public virtual Workload_Units Workload_Unit { get; set; }
         public virtual Time_Of_Days Time_Of_Day { get; set; }
+
+        public Tasks()
+        {
+            Time_Of_Day_ID = 3;
+        }
     }
 
     public class Exceptions
@@ -85,6 +90,7 @@ namespace WorkloadTest.Models
         public string Location { get; set; }
 
         public int Task_ID { get; set; }
+        public virtual Path_Types Path_Type { get; set; }
     }
 
     public class Path_Types

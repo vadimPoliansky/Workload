@@ -4295,7 +4295,7 @@ table {
   table tbody tr td,
   table tr td {
     display: table-cell;
-    line-height: 1.125rem; }
+    /*line-height: 1.125rem;*/ }
 
 /* Standard Forms */
 form {

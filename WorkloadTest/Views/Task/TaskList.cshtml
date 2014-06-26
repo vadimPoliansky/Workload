@@ -11,11 +11,20 @@
 <link href='../../Scripts/fullcalendar/fullcalendar.print.css' rel='stylesheet' media='print' />
 <script src='../../Scripts/fullcalendar/jquery.min.js'></script>
 <script src='../../Scripts/fullcalendar/jquery-ui.custom.min.js'></script>
-<script src='../../Scripts/fullcalendar/fullcalendar.js'></script>
+<script src='../../Scripts/fullcalendar/fullcalendar.min.js'></script>
 <script src='../../Scripts/date.format.js'></script>
 <script src='../../Scripts/date.js'></script>
 
 <style>
+
+    .fa-ul {
+        margin-left:0px;
+    }
+
+
+    #coeColors, #analystColors {
+        margin:5px;
+    }
 
     .fc-content {
         width:100% !important;
@@ -79,6 +88,7 @@
 
     .fc-border-separate {
         border:0px !important;
+        border-collapse:collapse !important;
     }
 
     .fc-year-weekly-head {
@@ -99,7 +109,7 @@
     }
 
     .fc-day {
-        border-bottom:1px solid black !important;
+        border-top:1px solid black !important;
     }
 
     .fc-widget-header {
@@ -144,12 +154,26 @@
         border:1px solid rgb(40, 111, 0);
     }
    
+    .fc-today {
+        border:2px solid #0094ff !important;
+        background:none;
+
+    }
+
+    .calendarFilterItem:hover, .fc-day:hover, .fc-past:hover, .calendarFilterHeader:hover {
+        background:lightblue;
+    }
+    .calendarFilterItem:active, .fc-day:active, .fc-past:active, .calendarFilterHeader:active {
+        background: #0094ff;
+    }
+
+
 </style>
 
 <!--style="padding:0px;margin-right:-50px;margin:0;"-->
     <br />
-<div class="row" >
-    <div class ="small-10 columns">
+<div class="row">
+    <div class ="small-10 columns" style="padding-left:0px !important">
     <div style="margin-right:10%"id='calendar'></div>
     
         @{string[] colors = {
@@ -164,28 +188,28 @@
     </div>
     <div class ="small-2 columns">
     <ul class="fa-ul" style="text-align:left;">
-    <label class="calendarFilterHeader" id="switchColorCoE"><i class="fa fa-filter"></i> View by CoE</label>
+    <label class="calendarFilterHeader" id="switchColorCoE"><i class="fa fa-filter"></i> Filter by CoE</label>
     <div id="coeColors" style="display:none">
     @{
         var k =0;
         foreach(var coe in Model.allCoEs){
-            <li class="calendarFilterItem filterItemCalendar" filterID="@coe.CoE_ID" field="coeID"><i class="fa fa-square" style="color:@colors[k] !important" ></i>@coe.CoE</li>
+            <li class="calendarFilterItem" filterID="@coe.CoE_ID" field="coeID"><i class="fa fa-square" style="color:@colors[k] !important" ></i>@coe.CoE</li>
             k++;
         }
-        <li class="calendarFilterItem filterItemCalendar" filterID="" field="coeID"><i class="fa fa-eraser"></i>Clear</li>
+        <li class="calendarFilterItem" filterID="" field="coeID"><i class="fa fa-eraser"></i>Clear</li>
     }
     </div>
     <br />
-    <label class="calendarFilterHeader" id="switchColorAnalyst"><i class="fa fa-filter"></i> View by Analyst</label>
+    <label class="calendarFilterHeader" id="switchColorAnalyst"><i class="fa fa-filter"></i> Filter by Analyst</label>
     <div id="analystColors" style="display:none">
     @{
 
         var l =0;
         foreach(var analyst in Model.allAnalysts){
-            <li class="calendarFilterItem filterItemCalendar" filterID="@analyst.Analyst_ID" field="analystID"><i class="fa fa-square" style="color:@colors[l] !important" ></i>@analyst.Last_Name,@analyst.First_Name</li>
+            <li class="calendarFilterItem" filterID="@analyst.Analyst_ID" field="analystID"><i class="fa fa-square" style="color:@colors[l] !important" ></i>@analyst.Last_Name,@analyst.First_Name</li>
             l++;
         }
-        <li class="calendarFilterItem filterItemCalendar" filterID="" field="analystID"><i class="fa fa-eraser"></i>Clear</li>
+        <li class="calendarFilterItem" filterID="" field="analystID"><i class="fa fa-eraser"></i>Clear</li>
     }
     </div>
     </div>
@@ -196,7 +220,7 @@
 
         $(document).ready(function ($) {
 
-            $('.filterItemCalendar').on('click',function(){
+            $('.calendarFilterItem').on('click',function(){
                 $('#calendar').fullCalendar('removeAllEventSource');
                 $('#calendar').fullCalendar('addEventSource',{
                     url: 'taskList?' + $(this).attr('field') + "=" + $(this).attr('filterID'),
@@ -281,41 +305,6 @@
                 });
             };
 
-            /*$("#switchColor").on('click',function(){
-                var events = $('#calendar').fullCalendar('clientEvents');
-                for (var i in events)
-                {
-                    if (currFilter === 1){
-                        var event = events[i];
-                        for (var key in eventColorsAnalyst){
-                            if(key == "Color_" + event.analyst_id){
-                                event.color = eventColorsAnalyst[key];
-                            };
-                        }
-                        $('#calendar').fullCalendar('updateEvent', event);
-                    } else {
-                        var event = events[i];
-                        for (var key in eventColorsCoE){
-                            if(key == "Color_" + event.coe_id){
-                                event.color = eventColorsCoE[key];
-                            };
-                        }
-                        $('#calendar').fullCalendar('updateEvent', event);
-                    }
-                }
-                if (currFilter === 1){ 
-                    currFilter = 0; 
-                    this.value = "Color By Analyst";  
-                    document.getElementById('coeColors').style.display = "none";
-                    document.getElementById('analystColors').style.display = "block";
-                } else {
-                    currFilter = 1;
-                    this.value = "Color By CoE";
-                    document.getElementById('coeColors').style.display = "block";
-                    document.getElementById('analystColors').style.display = "none";
-                }
-            });*/
-
             $('#calendar').fullCalendar({
                 header: {
                     left: 'prev,next today',
@@ -327,47 +316,18 @@
                 eventSources: [
                             {
                                 url: 'taskList', // use the `url` property
+                                type: 'GET',
+                                error:function(){
+                                    console.log("ASDFADS");
+                                }
                             }
                 ],
-                @*foreach (var task in Model.allInstances)
-                {
-                    if (task.Task_Date != null)
-                    {
-                        string coe = "";
-                        if (task.CoE_ID.Value != null) {
-                            coe = task.CoE.CoE_Abbr;
-                        }
-                        string endTime;
-                        switch(task.Task_Date_Time){
-                            case "Morn":
-                                endTime = "12:30:00 AM";
-                                break;
-                            case "Aftr":
-                                endTime = "01:00:00  AM";
-                                break;
-                            case "End":
-                            default:
-                                endTime = "01:30:00  AM";
-                                break;
-                                
-                        }
-                        <text>
-				        {
-				            title: "@coe - @task.Description",
-				            start: '@task.Task_Date_From.Value.Year - @task.Task_Date_From.Value.Month - @task.Task_Date_From.Value.Day 12:00:00 AM',
-				            end: '@task.Task_Date.Value.Year - @task.Task_Date.Value.Month - @task.Task_Date.Value.Day @endTime',
-				            task_id: "@task.Task_ID",
-				            instance_id: "@task.Instance",
-				            comment: "@task.Instance_Comment",
-				            analyst_id: "@task.Analyst_ID",
-				            coe_id: "@task.CoE_ID",
-				            color: eventColorsCoE.Color_@task.CoE_ID,
-				            priority: "@task.Priority",
-				        },
-                        </text>
-                    }
-                }
-                ],*@
+                dayClick: function(date, allDay, jsEvent, view) {
+                    console.log(date);
+                    $('#calendar').fullCalendar( 'gotoDate', date);
+                    $('#calendar').fullCalendar( 'changeView', "agendaDay");
+                    fixView();
+                },
                 editable: true,
                 eventDrop: function (event, dayDelta, minuteDelta, allDay, revertFunc) {
                     updateDrop(event, false)
@@ -376,10 +336,11 @@
                     updateDrop(event, true)
                 },
                 eventClick: function(calEvent, jsEvent, view) {
-                    //url = "@Url.Action("Create", "Task", new {id = "XXX"})";
-                    //url = url.replace( "XXX", calEvent.task_id);
-                    //window.location.href = "/task/create?id=" + calEvent.task_id;
                     var win = window.open("/task/create?id=" + calEvent.task_id, "Edit", "width=1200,height=600,scrollbars=yes,resizable=no");
+                    var winTimer = window.setInterval(function() {
+                        window.open("/task/create?id=" + calEvent.task_id, "Edit", "width=1200,height=600,scrollbars=yes,resizable=no");
+                        clearInterval(winTimer);
+                    }, 1000);
                     win.isPopup = true;
                     var pollTimer = window.setInterval(function() {
                         if (win.closed !== false) { // !== is required for compatibility with Opera
@@ -406,6 +367,7 @@
                     var comment;
                     var workload;
                     var workloadDays;
+                    var workloadHours;
                     var workloadUnits;
                     if (data.Exception_ID != 0) {
                         exception_id = data.Exception_ID;
@@ -419,6 +381,13 @@
                         if (event.end !== null){
                             workload = new Date(event.end - event.start);
                             workloadDays = workload / 1000 / 60 / 60 / 24 + 1;
+                            if (workloadDays < 2){
+                                workloadHours = parseInt(((workloadDays-1)*24) *4.0) +1;
+                                workloadDays = null;
+                                workloadUnits = 1;
+                            } else {
+                                workloadUnits = 2;
+                            }
                         } else {
                             workloadDays = null;
                         }
@@ -446,8 +415,8 @@
                         Canceled: false,
                         Comment: comment,
                         Exception_ID: exception_id,
-                        Workload: workloadDays,
-                        Workload_Unit: workloadUnits,
+                        Workload: workloadDays || workloadHours,
+                        Workload_Unit_ID: workloadUnits,
                     })
                     $.ajax({
                         url: "@Url.Action("drop", "Task")",
@@ -455,37 +424,47 @@
                         data: JSON.stringify(parameters),
                         contentType: 'application/json; charset=utf-8',
                         success: function (result) {
+                            $('#calendar').fullCalendar( 'refetchEvents' )
+                            $('#calendar').fullCalendar( 'rerenderEvents' );
                         },
                         error: function (request) {
+                            $('#calendar').fullCalendar( 'refetchEvents' )
+                            $('#calendar').fullCalendar( 'rerenderEvents' );
                         }
                     });
                 });
+
             }
             $(".fc-button").on('click',function(){
                 if($(this).hasClass('fc-button-agendaWeek') || $(this).hasClass('fc-button-agendaDay')){
-                    for (i = 0; i <= 3; i++){
-                        $(".fc-slot" + i).css('height','200px');
-                    }
-                    for (i = 4; i <= 50; i++){
-                        $(".fc-slot" + i).hide();
-                    }
-                    $('#calendar').fullCalendar( 'rerenderEvents' );
-                    $(".fc-view").children().eq(1).children().eq(3).css('overflow-y','hidden');
-                    $(".fc-view").children().eq(1).children().eq(3).css('overflow-y','hidden');
-                    $(".fc-view").children().eq(1).children().eq(3).children().eq(0).css('height','600px');
-                    $(".fc-view").css('height','649px').css('oveflow','hidden');
-                    $(".fc-agenda-axis").each(function(index){
-                        if(index === 3){
-                            this.textContent="Mor";
-                        } else if (index===4){
-                            this.textContent="Aftr";
-                        } else if (index ===5){
-                            this.textContent="End";
-                        }
-                    });
-                    $(".fc-agenda-allday").hide();
-                    $(".fc-agenda-divider-inner").hide();
+                    fixView()
                 }
+            });
+
+            function fixView(){
+                for (i = 0; i <= 3; i++){
+                    $(".fc-slot" + i).css('height','200px');
+                }
+                for (i = 4; i <= 50; i++){
+                    $(".fc-slot" + i).hide();
+                }
+                $('#calendar').fullCalendar( 'rerenderEvents' );
+                $(".fc-view").children().eq(1).children().eq(3).css('overflow-y','hidden');
+                $(".fc-view").children().eq(1).children().eq(3).css('overflow-y','hidden');
+                $(".fc-view").children().eq(1).children().eq(3).children().eq(0).css('height','600px');
+                $(".fc-view").css('height','649px').css('oveflow','hidden');
+                $(".fc-agenda-axis").each(function(index){
+                    if(index === 3){
+                        this.textContent="Mor";
+                    } else if (index===4){
+                        this.textContent="Aftr";
+                    } else if (index ===5){
+                        this.textContent="End";
+                    }
+                });
+                $(".fc-agenda-allday").hide();
+                $(".fc-agenda-divider-inner").hide();
+
                 setTimeout(function(){
                     if (currFilter === "CoE"){
                         colorCoE();
@@ -493,7 +472,7 @@
                         colorAnalyst();
                     }
                 }, 500);
-            });
+            }
 
             setInterval(function(){
                 if (currFilter === "CoE"){
@@ -501,8 +480,10 @@
                 } else if (currFilter === "Analyst"){
                     colorAnalyst();
                 }
-            }, 1000);
-            
+            }, 100);
+
+            colorCoE();
+            currFilter = "CoE";
         });
 
     </script>

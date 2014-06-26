@@ -13,11 +13,9 @@ namespace WorkloadTest.ViewModels
         public string end { get; set; }
         public string task_id { get; set; }
         public string instance_id { get; set; }
-        public string comment { get; set; }
-        public string allDay { get; set; }
         public string analyst_id { get; set; }
         public string coe_id { get; set; }
-        public string color { get; set; }
-        public string priority { get; set; }
+        public bool priority { get; set; }
+        public string allDay { get; set; }
     }
 }

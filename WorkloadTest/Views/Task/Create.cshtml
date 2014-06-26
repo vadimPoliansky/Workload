@@ -47,19 +47,19 @@
                     <div class="small-12 columns">
                         <label>
                             @Html.DisplayNameFor(x => x.task.CoE_ID):
-            <select id="CoE_ID">
-                @foreach (var coe in Model.allCoEs.OrderBy(x=>x.CoE))
-                {
-                    if (Model.task.CoE_ID == coe.CoE_ID)
-                    {
-                    <option selected="selected" value="@coe.CoE_ID">@coe.CoE</option>
-                    }
-                    else
-                    {
-                    <option value="@coe.CoE_ID">@coe.CoE</option>
-                    }
-                }
-            </select>
+                            <select id="CoE_ID">
+                                @foreach (var coe in Model.allCoEs.OrderBy(x=>x.CoE))
+                                {
+                                    if (Model.task.CoE_ID == coe.CoE_ID)
+                                    {
+                                    <option selected="selected" value="@coe.CoE_ID">@coe.CoE</option>
+                                    }
+                                    else
+                                    {
+                                    <option value="@coe.CoE_ID">@coe.CoE</option>
+                                    }
+                                }
+                            </select>
                         </label>
                     </div>
                 </div>
@@ -96,9 +96,27 @@
                     </div>
                 </div>
                 <div class="row">
-                    <div class="small-12 columns">
+                    <div class="small-8 columns">
                         <label>@Html.DisplayNameFor(x => x.task.Start_Date):
                             <input type="text" value="@Html.DisplayTextFor(x => x.task.Start_Date)" id="Start_Date" /></label>
+                    </div>
+                    <div class="small-4 columns">
+                        <label>
+                            @Html.DisplayNameFor(x => x.task.Time_Of_Day_ID):
+                            <select id="Time_Of_Day_ID">
+                                @foreach (var timeOfDay in Model.allTimeOfDays.OrderBy(x=>x.Sort))
+                                {
+                                    if (Model.task.Time_Of_Day_ID == timeOfDay.Time_Of_Day_ID)
+                                    {
+                                    <option selected="selected" value="@timeOfDay.Time_Of_Day_ID">@timeOfDay.Time_Of_Day</option>
+                                    }
+                                    else
+                                    {
+                                    <option value="@timeOfDay.Time_Of_Day_ID">@timeOfDay.Time_Of_Day</option>
+                                    }
+                                }
+                            </select>
+                        </label>
                     </div>
                 </div>
                 <div class="row">
@@ -489,6 +507,7 @@
                 Period_ID: document.getElementById('Period_ID').value,
                 Data_Source: dataSourcePath,
                 Report_Location: reportLocationPath,
+                Time_Of_Day_ID: document.getElementById('Time_Of_Day_ID').value,
             })
             $.ajax({
                 url: this.action,
@@ -501,6 +520,7 @@
                 }
             });
         }
+
 
         start_date = document.getElementById('Start_Date').value
         frequency = document.getElementById('Frequency').value;
@@ -569,6 +589,7 @@
                     document.getElementById("Task_Date_" + instance).value = "";
                     document.getElementById("Canceled_" + instance).checked = false;
                     document.getElementById("Comment_" + instance).value = "";
+                    $("#Workload_" + instance).hide();
                     document.getElementById("List_" + instance).style.backgroundColor = "";
                 },
                 error: function (request) {
@@ -576,6 +597,7 @@
                     document.getElementById("Task_Date_" + instance).value = "";
                     document.getElementById("Canceled_" + instance).checked = false;
                     document.getElementById("Comment_" + instance).value = "";
+                    $("#Workload_" + instance).hide();
                     document.getElementById("List_" + instance).style.backgroundColor = "";
                 }
             });
@@ -600,11 +622,16 @@
                         var newDate = null;
                     }
 
+                    if (!!data[i].Canceled || !!data[i].Comment){
+                        entry.style.backgroundColor = "red";
+                    }
+
                     var child = document.createElement('span');
                     child.id = "Instance_" + i;
                     child.setAttribute("Instance_ID", i);
                     child.setAttribute("Exception_ID", exceptionID);
                     child.setAttribute("Instance",1);
+
 
 
                     var canceled = document.createElement('input');
@@ -649,12 +676,16 @@
 
                     var revertIcon = document.createElement('span');
                     revertIcon.className = 'fa fa-times';
-                    revertIcon.style = "margin-left:320px; margin-right:0;";
+                    revertIcon.style = "float:right; margin-right:0;";
                     revertIcon.onclick = function(){
                         instance = this.parentNode.getAttribute("Instance_ID");
                         deleteDrop(instance)
                     }
 
+                    var workload = document.createElement('span');
+                    workload.id = "Workload_" + i;
+                    workload.textContent = data[i].Workload_String || "";
+                    workload.style  = "float:right; margin-right:0;color:white";
 
                     //var childText = document.createTextNode(
                     //date.format("mmmm dd, yyyy")
@@ -662,7 +693,7 @@
                     var originalDate = document.createElement('span');
                     originalDate.style.fontSize= "larger";
                     originalDate.className ='label';
-                    originalDate.innerHTML = date.format("mmmm dd, yyyy");
+                    originalDate.innerHTML = date.format("mmmm dd, yyyy") + "; " + data[i].Time_Of_Day;
                     originalDate.id = "Original_Task_Date_" + i;
 
                     child.appendChild(originalDate);
@@ -671,6 +702,7 @@
                     child.appendChild(canceled);
                     child.appendChild(canceledLabel);
                     child.appendChild(comment);
+                    child.appendChild(workload);
                     fieldset.appendChild(child);
                     entry.appendChild(fieldset);
                     list.appendChild(entry);

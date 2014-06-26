@@ -126,8 +126,9 @@ namespace WorkloadTest.Controllers
                             workload = task.Workload == null ? 0 : task.Workload;
                             workloadUnit = task.Workload_Unit_ID == null ? "" : workload_units.FirstOrDefault(x => x.Workload_Unit_ID == task.Workload_Unit_ID).Workload_Unit;
                         }
-                        DateTime? taskDateFrom = null;
 
+                        DateTime? taskDateFrom = null;
+                        string taskDateFromTime = taskDateTime;
                         if (workload != 0 && workloadUnit != "h")
                         {
                             taskDateFrom = taskDate != null ? Helper.DateMethods.DateAdd(taskDate,
@@ -135,41 +136,108 @@ namespace WorkloadTest.Controllers
                                                                         workload != null ? -(workload.Value - 1) : 0,
                                                                         1) :
                                                                         (DateTime?)null;
+                            taskDateFromTime = "Morn";
+                        }
+                        else if (workload != 0 && workloadUnit == "h")
+                        {
+                            taskDateFrom = taskDate;
+                            var shift = Math.Floor(workload.Value / 3);
+                            if (shift >= 1){
+                                double? shiftTime;
+                                if (exception != null && exception.Time_Of_Day != null) 
+                                {
+                                    shiftTime = exception.Time_Of_Day_ID - shift;
+                                }
+                                else
+                                {
+                                    shiftTime = task.Time_Of_Day_ID - shift;
+                                }
+                                if (shiftTime <= 0)
+                                {
+                                    var dec = (shiftTime.Value - 1) / 3;
+                                    var decString = dec.ToString(".##");
+                                    var intString = Math.Abs(Math.Truncate(dec - 1));
+                                    taskDateFrom = taskDate != null ? Helper.DateMethods.DateAdd(taskDate,
+                                                                        "d",
+                                                                        -intString,
+                                                                        1) :
+                                                                        (DateTime?)null;
+                                    int taskDateFromTimeID;
+                                    switch (decString)
+                                    {
+                                        case "-.67":
+                                            taskDateFromTimeID = 2;
+                                            break;
+                                        case "-.33":
+                                            taskDateFromTimeID = 3;
+                                            break;
+                                        default:
+                                        case "-.00":
+                                            taskDateFromTimeID = 1;
+                                            break;
+                                    }
+                                    taskDateFromTime = db.Time_Of_Days.FirstOrDefault(x => x.Time_Of_Day_ID == taskDateFromTimeID).Time_Of_Day_Abbr;
+                                } else {
+                                    if (exception != null && exception.Time_Of_Day != null)
+                                    {
+                                        taskDateFromTime = db.Time_Of_Days.FirstOrDefault(x => x.Time_Of_Day_ID == exception.Time_Of_Day_ID - shift).Time_Of_Day_Abbr;
+                                    }
+                                    else
+                                    {
+                                        taskDateFromTime = db.Time_Of_Days.FirstOrDefault(x => x.Time_Of_Day_ID == task.Time_Of_Day_ID - shift).Time_Of_Day_Abbr;
+                                    }
+                                }
+                            }
+                            
                         }
                         else
                         {
                             taskDateFrom = taskDate;
                         }
+
+                        string endTime;
+                        switch (taskDateTime)
+                        {
+                            case "Morn":
+                                endTime = "12:30:00 AM";
+                                break;
+                            case "Aftr":
+                                endTime = "01:00:00 AM";
+                                break;
+                            case "End":
+                            default:
+                                endTime = "01:30:00 AM";
+                                break;
+                        }
+                        string startTime = endTime;
+                        switch (taskDateFromTime)
+                        {
+                            default:
+                            case "Morn":
+                                startTime = "12:00:00 AM";
+                                break;
+                            case "Aftr":
+                                startTime = "12:30:00 AM";
+                                break;
+                            case "End":
+                                startTime = "01:00:00 AM";
+                                break;
+                        }
+
                         if (Request.IsAjaxRequest())
                         {
                             if (taskDate != null)
                             {
-                                string endTime;
-                                switch (taskDateTime)
-                                {
-                                    case "Morn":
-                                        endTime = "12:30:00 AM";
-                                        break;
-                                    case "Aftr":
-                                        endTime = "01:00:00  AM";
-                                        break;
-                                    case "End":
-                                    default:
-                                        endTime = "01:30:00  AM";
-                                        break;
-
-                                }
                                 CalendarViewModel instance = new CalendarViewModel
                                 {
                                     title = (task.CoE != null ? task.CoE.CoE_Abbr : "") + " - " + task.Description,
-                                    start = taskDateFrom.Value.Year + " - " + taskDateFrom.Value.Month + " - " + taskDateFrom.Value.Day + " 12:00:00 AM",
-                                    end = taskDate.Value.Year + " - " + taskDate.Value.Month + " - " + taskDate.Value.Day + " " + endTime,
+                                    start = taskDateFrom.Value.Year + "/" + taskDateFrom.Value.Month + "/" + taskDateFrom.Value.Day + " " + startTime,
+                                    end = taskDate.Value.Year + "/" + taskDate.Value.Month + "/" + taskDate.Value.Day + " " + endTime,
                                     task_id = task.Task_ID.ToString(),
                                     instance_id = task.Routine ? i.ToString() : "0",
                                     analyst_id = @task.Analyst_ID.ToString(),
                                     coe_id = task.CoE_ID.ToString(),
-                                    //color = eventColorsCoE.Color_@task.CoE_ID,
-                                    priority = task.Priority.ToString(),
+                                    priority = task.Priority,
                                 };
                                 allInstancesCalendar.Add(instance);
                             }
@@ -479,6 +547,7 @@ namespace WorkloadTest.Controllers
                     Report_Location = x.Report_Location,
 
                     Start_Date = x.Start_Date != null ? x.Start_Date.Value.ToString("yyyy-MM-dd") : "",
+                    Time_Of_Day_ID = x.Time_Of_Day_ID,
                     Request_Date = x.Request_Date != null ? x.Request_Date.Value.ToString("yyyy-MM-dd") : "",
 
                     Count = x.Count,
@@ -493,6 +562,7 @@ namespace WorkloadTest.Controllers
                     Analyst = x.Analyst != null ? x.Analyst.First_Name : "",
                     CoE = x.CoE != null ? x.CoE.CoE : "",
                     Period = x.Period != null ? x.Period.Period_Name : "",
+                    Time_Of_Day = x.Time_Of_Day != null ? x.Time_Of_Day.Time_Of_Day : "",
                 }).ToList();
                 var viewModel = new TaskListViewModel
                 {
@@ -528,10 +598,12 @@ namespace WorkloadTest.Controllers
             string coe = taskChange[0].CoE;
             string period = taskChange[0].Period;
             string workload = taskChange[0].Workload_Unit;
+            string timeOfDay = taskChange[0].Time_Of_Day;
             int? analystID = null;
             int? coeID = null;
             int? periodID = null;
             int? workloadUnitID = null;
+            int? timeOfDayID = null;
             if (taskChange[0].Analyst != null && taskChange[0].Analyst != "")
             {
                 analystID = db.Analysts.Any(x => x.First_Name == analyst) ?  db.Analysts.FirstOrDefault(x => x.First_Name == analyst).Analyst_ID : (int?)null;
@@ -548,6 +620,10 @@ namespace WorkloadTest.Controllers
             if (taskChange[0].Workload_Unit != null && taskChange[0].Workload_Unit != "")
             {
                 workloadUnitID = db.Workload_Units.Any(x => x.Workload_Unit_Name == workload) ? db.Workload_Units.FirstOrDefault(x => x.Workload_Unit_Name == workload).Workload_Unit_ID : (int?)null;
+            }
+            if (taskChange[0].Time_Of_Day != null && taskChange[0].Time_Of_Day != "")
+            {
+                timeOfDayID = db.Time_Of_Days.Any(x => x.Time_Of_Day == timeOfDay) ? db.Time_Of_Days.FirstOrDefault(x => x.Time_Of_Day == timeOfDay).Time_Of_Day_ID : (int?)null;
             }
             if (db.Tasks.Any(x => x.Task_ID == taskID))
             {
@@ -586,6 +662,7 @@ namespace WorkloadTest.Controllers
                         Analyst_ID = analystID ?? null,
                         CoE_ID = coeID ?? null,
                         Workload_Unit_ID = workloadUnitID ?? null,
+                        Time_Of_Day_ID = timeOfDayID ?? null,
 
                     };
 
@@ -652,6 +729,12 @@ namespace WorkloadTest.Controllers
         }
 
         [HttpGet]
+        public JsonResult getTimeOfDays()
+        {
+            return Json(db.Time_Of_Days.Select(x => x.Time_Of_Day.ToLower()).ToList(), JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpGet]
         public JsonResult instances(int Task_ID, DateTime Start_Date, int Frequency, int Period_ID, int Count)
         {
             List<RecurrenceViewModel> viewModel = new List<RecurrenceViewModel>();
@@ -666,8 +749,11 @@ namespace WorkloadTest.Controllers
                 string comment = null;
                 DateTime? newDate = null;
                 int? exceptionID = null;
+                string timeOfDay = null;
+                string workload = null;
                 if (Task_ID != 0)
                 {
+                    timeOfDay = db.Tasks.First(x => x.Task_ID == Task_ID).Time_Of_Day.Time_Of_Day;
                     var exception = exceptions.FirstOrDefault(x => x.Task_ID == Task_ID && x.Instance_ID == i);
                     if (exception != null)
                     {
@@ -675,6 +761,8 @@ namespace WorkloadTest.Controllers
                         canceled = exception.Canceled;
                         comment = exception.Comment;
                         newDate = exception.Date;
+                        timeOfDay = exception.Time_Of_Day != null ? exception.Time_Of_Day.Time_Of_Day : timeOfDay;
+                        workload = "*" + Math.Round(exception.Workload.Value,1) + " " + db.Workload_Units.FirstOrDefault(x => x.Workload_Unit_ID == exception.Workload_Unit_ID).Workload_Unit_Name;
                     }
                 }
                 RecurrenceViewModel recurrence = new RecurrenceViewModel
@@ -683,11 +771,13 @@ namespace WorkloadTest.Controllers
                     Instance_ID = i,
                     Canceled = canceled,
                     Instance_Comment = comment,
+                    Time_Of_Day = timeOfDay,
                     Task_Date = Helper.DateMethods.DateAdd(Start_Date,
                                                     periods.FirstOrDefault(x => x.Period_ID == Period_ID).Period,
                                                     Frequency,
                                                     i),
                     New_Task_Date = newDate,
+                    Workload_String = workload,
                 };
                 viewModel.Add(recurrence);
             }
@@ -746,6 +836,8 @@ namespace WorkloadTest.Controllers
                 else
                 {
                     var task = db.Tasks.FirstOrDefault(x => x.Task_ID == exception.Task_ID);
+                    task.Workload = Math.Floor(exception.Workload.Value);
+                    task.Workload_Unit_ID = db.Workload_Units.FirstOrDefault(x => x.Workload_Unit == "d").Workload_Unit_ID;
                     task.Start_Date = exception.Date;
                     db.Entry(task).Property(x => x.Start_Date).IsModified = true;
                     db.SaveChanges();
@@ -827,6 +919,7 @@ namespace WorkloadTest.Controllers
                 allPeriods = db.Periods.ToList(),
                 allPath_Types = db.Path_Types.ToList(),
                 allPaths = db.Paths.ToList(),
+                allTimeOfDays = db.Time_Of_Days.ToList(),
             };
             return View(viewModel);
         }
@@ -941,6 +1034,203 @@ namespace WorkloadTest.Controllers
 
         }
 
+        public ActionResult backupDB()
+        {
+            System.Data.OleDb.OleDbConnection conn = new System.Data.OleDb.OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=" + HttpContext.Server.MapPath("~/App_Data/test.accdb"));
+            conn.Open();
+            using (System.Data.OleDb.OleDbCommand cmd = new System.Data.OleDb.OleDbCommand())
+            {
+                cmd.Connection = conn;
+                cmd.CommandText = "Delete from tblEvent";
+                cmd.ExecuteNonQuery();
+                foreach (var task in db.Tasks.ToList())
+                {
+                    cmd.CommandText = "Insert Into tblEvent(EventID, EventRoutine, EventPriority, EventCoE, EventPurpose, EventDescrip, EventAnalyst, EventRequestor, EventWorkLoad, EventWorkLoadUnit, EventReqDate, EventStart, RecurCount, PeriodFreq, PeriodTypeID, Comment, EventPathTitle, EventPathName, EventPath,  EventPathTitle2, EventPathName2, EventPath2) values("
+                            + task.Task_ID
+                            + ", " + (task.Routine == true? -1 : 0)
+                            + ", " + (task.Priority == true ? -1 : 0)
+                            + ", " + (task.CoE_ID.HasValue ? task.CoE_ID.Value.ToString() : "NULL")
+                            + ", " + (task.Purpose != null && task.Purpose.Length > 0 ? "'" + task.Purpose.Replace("'","''") + "'" : "NULL")
+                            + ", " + (task.Description != null && task.Description.Length > 0 ? "'" + task.Description.Replace("'", "''") + "'" : "NULL")
+                            + ", " + (task.Analyst_ID.HasValue ? task.Analyst_ID.Value.ToString() : "NULL")
+                            + ", " + (task.Requestor != null && task.Requestor.Length > 0 ? "'" + task.Requestor.Replace("'", "''") + "'" : "NULL") 
+                            + ", " + (task.Workload.HasValue ? task.Workload.Value.ToString() : "NULL")
+                            + ", " + (task.Workload_Unit_ID.HasValue ? task.Workload_Unit_ID.Value.ToString() : "NULL")
+                            + ", " + (task.Request_Date.HasValue ? "#" + task.Request_Date.Value.ToShortDateString() + "#" : "NULL")
+                            + ", " + (task.Start_Date.HasValue ? "#" + task.Start_Date.Value.ToShortDateString() + "#" : "NULL")
+                            + ", " + (task.Count.HasValue ? task.Count.Value.ToString() : "NULL")
+                            + ", " + (task.Frequency.HasValue ? task.Frequency.Value.ToString() : "NULL")
+                            + ", " + (task.Period_ID.HasValue ? task.Period_ID.Value.ToString() : "NULL")
+                            + ", " + (task.Comment != null && task.Comment.Length > 0 ? "'" + task.Comment.Replace("'","''") + "'": "NULL")
+                            + ", 'Data Source'" + ", '', " + (task.Data_Source != null && task.Data_Source.Length > 0 ? "'" + task.Data_Source.Replace("'", "''") + "'" : "NULL")
+                            + ", 'Report Location'" + ", '' ," + (task.Report_Location != null && task.Report_Location.Length > 0 ? "'" + task.Report_Location.Replace("'", "''") + "'" : "NULL")
+                            + ")";
+                    cmd.ExecuteNonQuery();
+                    var i = 3;
+                    foreach (var path in task.Path)
+                    {
+                        cmd.CommandText = "UPDATE tblEvent SET "
+                            + "EventPathTitle" + i + "=" + path.Path_Type_ID
+                            + ", EventPathName" + i + "=" + (path.Title != null && path.Title.Length > 0 ? "'" + path.Title.Replace("'", "''") + "'" : "NULL")
+                            + ", EventPath" + i + "=" + (path.Location != null && path.Location.Length > 0 ? "'" + path.Location.Replace("'", "''") + "'" : "NULL")
+                            + " WHERE EventID=" + task.Task_ID;
+                        cmd.ExecuteNonQuery();
+                        if (i == 8)
+                        {
+                            break; 
+                        }
+                        else
+                        {
+                            i++;
+                        }
+                    }
+                }
+
+                cmd.Connection = conn;
+                cmd.CommandText = "Delete from tblEventException";
+                cmd.ExecuteNonQuery();
+                foreach (var exception in db.Exceptions.ToList())
+                {
+                    cmd.CommandText = "Insert Into tblEventException(EventID, InstanceID, InstanceDate, isCanned, InstanceComment) values("
+                            + exception.Task_ID
+                            + ", " + exception.Instance_ID
+                            + ", " + (exception.Date.HasValue ? "#" + exception.Date.Value.ToShortDateString() + "#" : "NULL")
+                            + ", " + (exception.Canceled == true ? -1 : 0)
+                            + ", " + (exception.Comment != null && exception.Comment.Length > 0 ? "'" + exception.Comment.Replace("'", "''") + "'" : "NULL")
+                            + ")";
+                    cmd.ExecuteNonQuery();
+                }
+            }
+            conn.Close();
+
+            return File(HttpContext.Server.MapPath("~/App_Data/test.accdb"), "application/msaccess", "Workload3_be.accdb");
+            
+        }
+
+        public void uploadDB(System.Data.OleDb.OleDbConnection conn)
+        {
+            conn.Open();
+            using (System.Data.OleDb.OleDbCommand cmd = new System.Data.OleDb.OleDbCommand())
+            {
+                cmd.Connection = conn;
+
+                var allTasks = db.Tasks.ToList();
+                foreach (var delTask in allTasks)
+                {
+                    db.Tasks.Remove(delTask);
+                    db.SaveChanges();
+                }
+                var allPaths = db.Paths.ToList();
+                foreach (var delPath in allPaths)
+                {
+                    db.Paths.Remove(delPath);
+                    db.SaveChanges();
+                }
+
+                db.Database.ExecuteSqlCommand("DBCC CHECKIDENT('Tasks', RESEED, 0);");
+                db.Database.ExecuteSqlCommand("DBCC CHECKIDENT('Paths', RESEED, 0);");
+                db.Database.ExecuteSqlCommand("DBCC CHECKIDENT('Exceptions', RESEED, 0);");
+
+                cmd.CommandText = "SELECT COUNT(*) FROM tblEVENT";
+                var taskCount = (int)cmd.ExecuteScalar();
+
+                cmd.CommandText = "SELECT * FROM tblEvent";
+                var tasks = cmd.ExecuteReader();                
+
+                var idMap = new int[taskCount, 2];
+                var j = 0;
+
+                while (tasks.Read())
+                {
+                    idMap[j, 0] = (int)tasks.GetValue(0);
+
+                    var allWorkLoadUnits = db.Workload_Units.ToList();
+                    var allPeriods = db.Periods.ToList();
+
+                    var task = new Tasks()
+                    {
+                        Task_ID = (int)tasks.GetValue(0),
+                        Routine = (bool)((int)tasks.GetValue(1) == -1 ? true : false),
+                        Priority = (bool)((int)tasks.GetValue(2) == -1 ? true : false),
+                        CoE_ID = tasks.GetValue(3) != DBNull.Value ? (int?)tasks.GetValue(3) : null,
+                        Purpose = tasks.GetValue(4) != DBNull.Value ? (string)tasks.GetValue(4) : null,
+                        Requestor = tasks.GetValue(5) != DBNull.Value ? (string)tasks.GetValue(5) : null,
+                        Workload = tasks.GetValue(6) != DBNull.Value ? (float?)tasks.GetValue(6) : null,
+                        Workload_Unit_ID = tasks.GetValue(7) != DBNull.Value ? allWorkLoadUnits.FirstOrDefault(x=>x.Workload_Unit == (string)tasks.GetValue(7)).Workload_Unit_ID : 2,
+                        Analyst_ID = tasks.GetValue(8) != DBNull.Value ? (int?)tasks.GetValue(8) : null,
+                        Data_Source = tasks.GetValue(11) != DBNull.Value ? (string)tasks.GetValue(11) : null,
+                        Report_Location = tasks.GetValue(14) != DBNull.Value ? (string)tasks.GetValue(14) : null,
+                        Description = tasks.GetValue(33) != DBNull.Value ? (string)tasks.GetValue(33) : null,
+                        Start_Date = tasks.GetValue(34) != DBNull.Value ? (DateTime?)tasks.GetValue(34) : null,
+                        Request_Date = tasks.GetValue(35) != DBNull.Value ? (DateTime?)tasks.GetValue(35) : null,
+                        Count = tasks.GetValue(36) != DBNull.Value ? (int?)tasks.GetValue(36) : null,
+                        Frequency = tasks.GetValue(37) != DBNull.Value ? (int?)tasks.GetValue(37) : null,
+                        Period_ID = tasks.GetValue(38) != DBNull.Value ? allPeriods.FirstOrDefault(x => x.Period == (string)tasks.GetValue(38)).Period_ID : 1,
+                        Comment = tasks.GetValue(39) != DBNull.Value ? (string)tasks.GetValue(39) : null,
+                    };
+                    db.Tasks.Add(task);
+                    db.SaveChanges();
+
+                    idMap[j, 1] = task.Task_ID;
+
+                    for (var i = 17; i <= 32; i=i+3)
+                    {
+                        if (tasks.GetValue(i) != DBNull.Value ) {
+                            var path = new Paths()
+                            {
+                                Task_ID = task.Task_ID,
+                                Path_Type_ID = tasks.GetValue(i - 2) != DBNull.Value ? (int)Int32.Parse((string)tasks.GetValue(i - 2)) : 3,
+                                Title = tasks.GetValue(i - 1) != DBNull.Value ? (string)tasks.GetValue(i - 1) : null,
+                                Location = tasks.GetValue(i) != DBNull.Value ? tasks.GetValue(i).ToString().Replace("##","") : null,
+                            };
+                            db.Paths.Add(path);
+                            db.SaveChanges();
+                        }
+                    }
+                    j++;
+                }
+                tasks.Close();
+
+                cmd.CommandText = "SELECT * FROM tblEventException";
+
+                var exceptions = cmd.ExecuteReader();
+
+                var allExceptions = db.Exceptions.ToList();
+                foreach (var delException in allExceptions)
+                {
+                    db.Exceptions.Remove(delException);
+                    db.SaveChanges();
+                }
+
+                while (exceptions.Read())
+                {
+                    int newTaskID = 0;
+                    for(var i = 0; i <= idMap.GetUpperBound(0); i++){
+                        if (idMap[i, 0] == (int)exceptions.GetValue(0))
+                        {
+                            newTaskID = idMap[i, 1];
+                        }
+                    }
+                    if (newTaskID != 0)
+                    {
+                        var exception = new Exceptions()
+                        {
+                            Task_ID = newTaskID,
+                            Instance_ID = (int)exceptions.GetValue(1),
+                            Date = exceptions.GetValue(2) != DBNull.Value ? (DateTime?)exceptions.GetValue(2) : null,
+                            Canceled = exceptions.GetValue(3).ToString() == "-1" ? true : false,
+                            Comment = exceptions.GetValue(4) != DBNull.Value ? (string)exceptions.GetValue(4) : null,
+                        };
+                        db.Exceptions.Add(exception);
+                        db.SaveChanges();
+                    }
+                }
+                exceptions.Close();
+            }
+            conn.Close();
+        }
+
+
         public ActionResult Edit(int? id = null)
         {
             Tasks tasks = db.Tasks.Find(id);
@@ -966,13 +1256,6 @@ namespace WorkloadTest.Controllers
             }
             return View(tasks);
         }
-
-        //
-        // GET: /Task/Delete/5
-
-
-        //
-        // POST: /Task/Delete/5
 
         public ActionResult Delete(int? id)
         {

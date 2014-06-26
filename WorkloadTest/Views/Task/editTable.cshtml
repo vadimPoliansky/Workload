@@ -62,6 +62,33 @@
         };
         $window.on('resize', calculateSize);
 
+        function isEmptyRow(instance, row) {
+            var rowData = instance.getData()[row];
+            for (var i = 0, ilen = rowData.length; i < ilen; i++) {
+                if (rowData[i] !== null) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function defaultValueRenderer(instance, td, row, col, prop, value, cellProperties) {
+            var args = $.extend(true, [], arguments);
+            if (args[5] === null && isEmptyRow(instance, row)) {
+                args[5] = tpl[col];
+                td.style.color = '#999';
+                td.style.fontSize = 'larger';
+            }
+            else {
+                td.style.color = '';
+            }
+            Handsontable.renderers.TextRenderer.apply(this, args);
+        }
+
+        
+        var tpl = ["(NEW)"];
+
+
         maxed = true;
         $example1.handsontable('render');
         $example1.handsontable({
@@ -74,7 +101,7 @@
             strechW: 'all',
             scrollH: 'auto',
             scrollV: 'auto',
-            colWidths: [100, 100, 100, 50, 200, 200, 200, 50, 100, 300, 300, 300, 300, 100, 50, 50, 100, 50],
+            colWidths: [100, 100, 100, 50, 200, 200, 200, 50, 100, 300, 300, 300, 300, 100, 100, 50, 50, 100, 50],
             width: function () {
                 if (maxed && availableWidth === void 0) {
                     calculateSize();
@@ -108,6 +135,7 @@
                 "Report_Location",
                 "Request_Date",
                 "Due_Date",
+                "Due Time",
                 "Routine",
                 "Repeat Every",
                 "Period",
@@ -156,6 +184,17 @@
                 { data: "Report_Location" },
                 { data: "Request_Date" },
                 { data: "Start_Date"},
+                { data: "Time_Of_Day", type:'autocomplete', strict: true, 
+                    source: function (query, process) {
+                        $.ajax({
+                            url: 'getTimeOfDays',
+                            success: function (response) {
+                                console.log("response", response);
+                                process(response);
+                            }
+                        });
+                    }
+                },
                 { data: "Routine", type:'autocomplete', strict: true, source: function(query, process){ process(["true","false"])} },
                 { data: "Frequency" },
                 { data: "Period", type:'autocomplete', strict: true, 
@@ -182,12 +221,14 @@
                                 var cellProperties = {};
                                 if (prop === "Period" || prop === "Frequency" || prop === "Count"){
                                     console.log($example1.handsontable('getDataAtRowProp', row, 'Routine'));
-                                    if($example1.handsontable('getDataAtRowProp', row, 'Routine') === false || 
-                                        $example1.handsontable('getDataAtRowProp', row, 'Routine') === "false"){
+                                    if($example1.handsontable('getDataAtRowProp', row, 'Routine') === false){
                                         cellProperties.renderer = greyOut;
+                                        return cellProperties;
                                     }
+                                } else if (prop === "Task_ID") {
+                                    cellProperties.renderer = defaultValueRenderer;
+                                    return cellProperties;
                                 }
-                                return cellProperties;
                             }
 
                         });
@@ -204,9 +245,38 @@
                     console.log($example1.handsontable('getDataAtRowProp', row, 'Routine'));
                     if($example1.handsontable('getDataAtRowProp', row, 'Routine') === false){
                         cellProperties.renderer = greyOut;
+                        return cellProperties;
+                    }
+                } else if (prop === "Task_ID") {
+                    cellProperties.renderer = defaultValueRenderer;
+                    return cellProperties;
+                }
+            },
+            beforeChange: function (changes) {
+                var instance = $example1.data('handsontable')
+                    , i
+                    , ilen = changes.length
+                    , c
+                    , clen = instance.colCount
+                    , rowColumnSeen = {}
+                    , rowsToFill = {};
+                for (i = 0; i < ilen; i++) {
+                    if (changes[i][2] === null && changes[i][3] !== null) { //if oldVal is empty
+                        if (isEmptyRow(instance, changes[i][0])) {
+                            rowColumnSeen[changes[i][0] + '/' + changes[i][1]] = true; //add this row/col combination to cache so it will not be overwritten by template
+                            rowsToFill[changes[i][0]] = true;
+                        }
                     }
                 }
-                return cellProperties;
+                for (var r in rowsToFill) {
+                    if (rowsToFill.hasOwnProperty(r)) {
+                        for (c = 0; c < clen; c++) {
+                            if (!rowColumnSeen[r + '/' + c]) { //if it is not provided by user in this change set, take value from template
+                                changes.push([r, c, null, tpl[c]]);
+                            }
+                        }
+                    }
+                }
             }
         });
 
@@ -264,6 +334,7 @@
                         $example1.handsontable('setDataAtRowProp',changedRow, "Task_ID", data);
                         $example1.handsontable('setDataAtRowProp',changedRow, "Routine", "false");
                         $example1.handsontable('setDataAtRowProp',changedRow, "Priority", "false");
+                        $example1.handsontable('setDataAtRowProp',changedRow, "Time_Of_Day_ID", "End Of Day");
                     } else {
                         var parameters = []
                         parameters.push({
@@ -279,6 +350,7 @@
                             Data_Source:(changedParameter=="Data_Source" ? changedValue : newValue.Data_Source),
                             Report_Location:(changedParameter=="Report_Location" ? changedValue : newValue.Report_Location),
                             Start_Date:(changedParameter=="Start_Date" ? changedValue : newValue.Start_Date),
+                            Time_Of_Day_ID:(changedParameter=="Time_Of_Day_ID" ? changedValue : newValue.Time_Of_Day_ID),
                             Request_Date:(changedParameter=="Request_Date" ? changedValue : newValue.Request_Date),
                             Count:(changedParameter=="Count" ? changedValue : newValue.Count),
                             Frequency:(changedParameter=="Frequency" ? changedValue : newValue.Frequency),
@@ -290,6 +362,7 @@
                             Analyst:(changedParameter=="Analyst" ? changedValue : newValue.Analyst),
                             CoE:(changedParameter=="CoE" ? changedValue : newValue.CoE),
                             Workload_Unit:(changedParameter=="Workload_Unit" ? changedValue : newValue.Workload_Unit),
+                            Time_Of_Day:(changedParameter=="Time_Of_Day" ? changedValue : newValue.Time_Of_Day),
                         })
                     }
                     $.ajax({
@@ -413,5 +486,6 @@
         color:black !important;
         background-color:black !important;
     }
+
 
 </style>
