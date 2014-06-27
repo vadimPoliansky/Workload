@@ -211,6 +211,9 @@
     <Compile Include="ViewModels\TaskVM.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="ACEOLEDB.DLL">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="App_Data\test.accdb" />
     <Content Include="ClosedXML.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
