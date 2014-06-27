@@ -836,7 +836,7 @@ namespace WorkloadTest.Controllers
                 else
                 {
                     var task = db.Tasks.FirstOrDefault(x => x.Task_ID == exception.Task_ID);
-                    task.Workload = Math.Floor(exception.Workload.Value);
+                    task.Workload = exception.Workload.HasValue ? Math.Floor(exception.Workload.Value) : task.Workload ;
                     task.Workload_Unit_ID = db.Workload_Units.FirstOrDefault(x => x.Workload_Unit == "d").Workload_Unit_ID;
                     task.Start_Date = exception.Date;
                     db.Entry(task).Property(x => x.Start_Date).IsModified = true;
