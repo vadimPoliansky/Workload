@@ -39,16 +39,15 @@ namespace WorkloadTest.Controllers
 
                 if (file != null && file.ContentLength > 0)
                 {
-                    var fileName = "uploadDB.accdb";
+                    var fileName = "uploadDBExcel.xlsx";
                     var path = Path.Combine(Server.MapPath("~/App_Data/"), fileName);
                     file.SaveAs(path);
+
+                    TaskController t = new TaskController();
+                    t.uploadDBExcel(path);
                 }
             }
 
-            System.Data.OleDb.OleDbConnection conn = new System.Data.OleDb.OleDbConnection(@"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=" + Server.MapPath("~/App_Data/uploadDB.accdb"));
-
-            TaskController t = new TaskController();
-            t.uploadDB(conn);
         }
     }
 }

@@ -1104,7 +1104,275 @@ namespace WorkloadTest.Controllers
             conn.Close();
 
             return File(HttpContext.Server.MapPath("~/App_Data/test.accdb"), "application/msaccess", "Workload3_be.accdb");
-            
+        }
+
+
+        public void backupDBExcel()
+        {
+            var wb = new XLWorkbook();
+
+            var ws = wb.Worksheets.Add("tblEvent");
+
+            int currRow = 2;
+            int currCol = 1;
+            var columnHeaderString = "EventID	EventRoutine	EventPriority	EventCoE	EventPurpose	EventRequestor	EventWorkLoad	EventWorkLoadUnit	EventAnalyst	EventPathTitle	EventPathName	EventPath	EventPathTitle2	EventPathName2	EventPath2	EventPathTitle3	EventPathName3	EventPath3	EventPathTitle4	EventPathName4	EventPath4	EventPathTitle5	EventPathName5	EventPath5	EventPathTitle6	EventPathName6	EventPath6	EventPathTitle7	EventPathName7	EventPath7	EventPathTitle8	EventPathName8	EventPath8	EventDescrip	EventStart	EventReqDate	RecurCount	PeriodFreq	PeriodTypeID	Comment	UserAdded	AddedDate";
+            string[] columnHeaders = columnHeaderString.Split('\t');
+
+            var colHeader=1;
+            foreach (var exHeader in columnHeaders)
+            {
+                ws.Cell(1, colHeader).Value = exHeader;
+                colHeader++;
+            }
+
+            foreach (var task in db.Tasks.ToList())
+            {
+                ws.Cell(currRow, currCol).Value = task.Task_ID;
+                currCol++;
+                ws.Cell(currRow, currCol).Value = task.Routine == true ? -1: 0;
+                currCol++;
+                ws.Cell(currRow, currCol).Value = task.Priority == true ? -1: 0;
+                currCol++;
+                ws.Cell(currRow, currCol).Value = task.CoE_ID;
+                currCol++;
+                ws.Cell(currRow, currCol).Value = task.Purpose;
+                currCol++;
+                ws.Cell(currRow, currCol).Value = task.Requestor;
+                currCol++;
+                ws.Cell(currRow, currCol).Value = task.Workload;
+                currCol++;
+                ws.Cell(currRow, currCol).Value = task.Workload_Unit != null ? task.Workload_Unit.Workload_Unit : "d";
+                currCol++;
+                ws.Cell(currRow, currCol).Value = task.Analyst_ID;
+                currCol++;
+                ws.Cell(currRow, currCol).Value = 1;
+                currCol++;
+                ws.Cell(currRow, currCol).Value = "";
+                currCol++;
+                ws.Cell(currRow, currCol).Value = task.Data_Source;
+                currCol++;
+                ws.Cell(currRow, currCol).Value = 2;
+                currCol++;
+                ws.Cell(currRow, currCol).Value = "";
+                currCol++;
+                ws.Cell(currRow, currCol).Value = task.Report_Location;
+                currCol++;
+                var i=3;
+                foreach (var path in db.Paths.Where(x=>x.Task_ID == task.Task_ID).ToList())
+                {
+                    if (i == 9) { break; }
+                    ws.Cell(currRow, currCol).Value = path.Path_Type_ID;
+                    currCol++;
+                    ws.Cell(currRow, currCol).Value = path.Title;
+                    currCol++;
+                    ws.Cell(currRow, currCol).Value = "#" + path.Location + "#";
+                    currCol++;
+                    i++;
+                }
+                currCol = 34;
+                ws.Cell(currRow, currCol).Value = task.Description;
+                currCol++;
+                ws.Cell(currRow, currCol).Value = task.Start_Date.HasValue ? task.Start_Date.Value.ToShortDateString() : "";
+                currCol++;
+                ws.Cell(currRow, currCol).Value = task.Request_Date.HasValue ? task.Request_Date.Value.ToShortDateString() : "";
+                currCol++;
+                ws.Cell(currRow, currCol).Value = task.Count;
+                currCol++;
+                ws.Cell(currRow, currCol).Value = task.Frequency;
+                currCol++;
+                ws.Cell(currRow, currCol).Value = task.Period != null ? task.Period.Period : "h";
+                currCol++;
+                ws.Cell(currRow, currCol).Value = task.Comment;
+                currCol++;
+
+                currRow++;
+                currCol = 1;
+            }
+
+            ws = wb.Worksheets.Add("tblEventException");
+
+            currRow = 2;
+            currCol = 1;
+            columnHeaderString = "EventID	InstanceID	InstanceDate	IsCanned	InstanceComment";
+            columnHeaders = columnHeaderString.Split('\t');
+
+            colHeader = 1;
+            foreach (var exHeader in columnHeaders)
+            {
+                ws.Cell(1, colHeader).Value = exHeader;
+                colHeader++;
+            }
+            foreach (var exception in db.Exceptions.ToList())
+            {
+                ws.Cell(currRow, currCol).Value = exception.Task_ID;
+                currCol++;
+                ws.Cell(currRow, currCol).Value = exception.Instance_ID;
+                currCol++;
+                ws.Cell(currRow, currCol).Value = exception.Date.HasValue ? exception.Date.Value.ToShortDateString() : "";
+                currCol++;
+                ws.Cell(currRow, currCol).Value = exception.Canceled == true ? -1 : 0;
+                currCol++;
+                ws.Cell(currRow, currCol).Value = exception.Comment;
+                currCol++;
+
+                currRow++;
+                currCol = 1;
+
+            }
+
+            HttpResponse httpResponse = this.HttpContext.ApplicationInstance.Context.Response;
+            httpResponse.Clear();
+            httpResponse.ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            httpResponse.AddHeader("content-disposition", "attachment;filename=\"backupDB.xlsx\"");
+            using (MemoryStream memoryStream = new MemoryStream())
+            {
+                wb.SaveAs(memoryStream);
+                memoryStream.WriteTo(httpResponse.OutputStream);
+                memoryStream.Close();
+            }
+
+            httpResponse.End();
+        }
+
+        public void uploadDBExcel(string path)
+        {
+
+            var allTasks = db.Tasks.ToList();
+            foreach (var delTask in allTasks)
+            {
+                db.Tasks.Remove(delTask);
+                db.SaveChanges();
+            }
+            var allPaths = db.Paths.ToList();
+            foreach (var delPath in allPaths)
+            {
+                db.Paths.Remove(delPath);
+                db.SaveChanges();
+            }
+
+            db.Database.ExecuteSqlCommand("DBCC CHECKIDENT('Tasks', RESEED, 0);");
+            db.Database.ExecuteSqlCommand("DBCC CHECKIDENT('Paths', RESEED, 0);");
+            db.Database.ExecuteSqlCommand("DBCC CHECKIDENT('Exceptions', RESEED, 0);");
+
+            //string path = HttpContext.Server.MapPath("~/App_Data/uploadDBExcel.xlsx");
+
+            var wb = new XLWorkbook(path);
+
+            var ws = wb.Worksheet("tblEvent");
+
+            int currCol = 1;
+            int finalRow = ws.LastRowUsed().RowNumber();
+
+            var idMap = new int[finalRow, 2];
+            var j = 0;
+
+            for (var i = 2; i <= finalRow; i++)
+            {
+                var newTask = new Tasks();
+
+                idMap[j, 0] = (int)ws.Cell(i, currCol).GetDouble();
+
+                newTask.Task_ID = (int)ws.Cell(i, currCol).GetDouble();
+                currCol++;
+                newTask.Routine = (int)ws.Cell(i, currCol).GetDouble() == -1 ? true : false;
+                currCol++;
+                newTask.Priority = (int)ws.Cell(i, currCol).GetDouble() == -1 ? true : false;
+                currCol++;
+                newTask.CoE_ID = ws.Cell(i, currCol).GetString() != "" ? (int?)ws.Cell(i, currCol).GetDouble() : null;
+                currCol++;
+                newTask.Purpose = (string)ws.Cell(i, currCol).GetString();
+                currCol++;
+                newTask.Requestor = (string)ws.Cell(i, currCol).GetString();
+                currCol++;
+                newTask.Workload =  ws.Cell(i, currCol).GetString() != "" ? (int)ws.Cell(i, currCol).GetDouble() : 0;
+                currCol++;
+                string workloadUnit = (string)ws.Cell(i, currCol).GetString();
+                newTask.Workload_Unit_ID = (string)ws.Cell(i, currCol).GetString() != "" ? db.Workload_Units.FirstOrDefault(x => x.Workload_Unit == workloadUnit).Workload_Unit_ID : 2;
+                currCol++;
+                newTask.Analyst_ID = ws.Cell(i, currCol).GetString() != "" ? (int?)ws.Cell(i, currCol).GetDouble() : null;
+                currCol=12;
+                newTask.Data_Source = (string)ws.Cell(i, currCol).GetString();
+                currCol=15;
+                newTask.Report_Location = (string)ws.Cell(i, currCol).GetString();
+                currCol=34;
+                newTask.Description = (string)ws.Cell(i, currCol).GetString();
+                currCol++;
+                newTask.Start_Date = ws.Cell(i, currCol).GetString() != "" ? (DateTime?)ws.Cell(i, currCol).GetDateTime() : null;
+                currCol++;
+                newTask.Request_Date = ws.Cell(i, currCol).GetString() != "" ? (DateTime?)ws.Cell(i, currCol).GetDateTime() : null;
+                currCol++;
+                newTask.Count = ws.Cell(i, currCol).GetString() != "" ? (int)ws.Cell(i, currCol).GetDouble() : 0;
+                currCol++;
+                newTask.Frequency = ws.Cell(i, currCol).GetString() != "" ? (int)ws.Cell(i, currCol).GetDouble() : 0;
+                currCol++;
+                string period = (string)ws.Cell(i, currCol).GetString();
+                newTask.Period_ID = (string)ws.Cell(i, currCol).GetString() != "" ? db.Periods.FirstOrDefault(x => x.Period == period).Period_ID : 2;
+                currCol++;
+                newTask.Comment = (string)ws.Cell(i, currCol).GetString();
+                currCol++;
+
+                db.Tasks.Add(newTask);
+                db.SaveChanges();
+
+                idMap[j, 1] = newTask.Task_ID;
+
+                for (var p = 18; p <= 33; p = p + 3)
+                {
+                    if (ws.Cell(i, p).GetString() != "")
+                    {
+                        var newPath = new Paths()
+                        {
+                            Task_ID = newTask.Task_ID,
+                            Path_Type_ID = ws.Cell(i, p - 2).GetString() != "" ? (int)Int32.Parse(ws.Cell(i, p - 2).GetString()) : 3,
+                            Title = (string)ws.Cell(i, p - 1).GetString(),
+                            Location = (string)ws.Cell(i, p).GetString(),
+                        };
+                        db.Paths.Add(newPath);
+                        db.SaveChanges();
+                    }
+                }
+
+                currCol = 1;
+                j++;
+            }
+
+            ws = wb.Worksheet("tblEventException");
+
+            currCol = 1;
+            finalRow = ws.LastRowUsed().RowNumber();
+
+            for (var i = 2; i <= finalRow; i++)
+            {
+                var newException = new Exceptions();
+
+                int newTaskID = 0;
+                for(var k = 0; k <= idMap.GetUpperBound(0); k++){
+                    if (idMap[k, 0] == (int)ws.Cell(i, currCol).GetDouble())
+                    {
+                        newTaskID = idMap[k, 1];
+                    }
+                }
+                if (newTaskID != 0)
+                {
+
+                    newException.Task_ID = newTaskID;
+                    currCol++;
+                    newException.Instance_ID = (int)ws.Cell(i, currCol).GetDouble();
+                    currCol++;
+                    newException.Date = ws.Cell(i, currCol).GetString() != "" ? (DateTime?)ws.Cell(i, currCol).GetDateTime() : null;
+                    currCol++;
+                    newException.Canceled = (int)ws.Cell(i, currCol).GetDouble() == -1 ? true : false;
+                    currCol++;
+                    newException.Comment = (string)ws.Cell(i, currCol).GetString();
+                    currCol++;
+
+                    db.Exceptions.Add(newException);
+                    db.SaveChanges();
+
+                    currCol = 1;
+                }
+            }
+
         }
 
         public void uploadDB(System.Data.OleDb.OleDbConnection conn)
