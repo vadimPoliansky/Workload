@@ -437,11 +437,9 @@
                         data: JSON.stringify(parameters),
                         contentType: 'application/json; charset=utf-8',
                         success: function (result) {
-                            $('#calendar').fullCalendar( 'refetchEvents' )
                             $('#calendar').fullCalendar( 'rerenderEvents' );
                         },
                         error: function (request) {
-                            $('#calendar').fullCalendar( 'refetchEvents' )
                             $('#calendar').fullCalendar( 'rerenderEvents' );
                         }
                     });
