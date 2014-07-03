@@ -1,0 +1,501 @@
+﻿@model WorkloadTest.ViewModels.InstanceListViewModel
+
+@{
+    ViewBag.Title = "TaskList";
+    ViewBag.allCoes = Model.allCoEs.OrderBy(x => x.CoE);
+    ViewBag.allAnalysts = Model.allAnalysts.OrderBy(x => x.First_Name);    
+}
+
+
+<link href='../../Scripts/fullcalendar/fullcalendar.css' rel='stylesheet' />
+<link href='../../Scripts/fullcalendar/fullcalendar.print.css' rel='stylesheet' media='print' />
+<script src='../../Scripts/fullcalendar/jquery.min.js'></script>
+<script src='../../Scripts/fullcalendar/jquery-ui.custom.min.js'></script>
+<script src='../../Scripts/fullcalendar/fullcalendar.min.js'></script>
+<script src='../../Scripts/date.format.js'></script>
+<script src='../../Scripts/date.js'></script>
+
+<style>
+
+    .fa-ul {
+        margin-left:0px;
+    }
+
+    .ui-resizable-handle {
+
+    }
+
+        .ui-resizable-handle:hover {
+        background-color:#0094ff;
+        border:1px solid black;
+    }
+
+    #coeColors, #analystColors {
+        margin:5px;
+    }
+
+    .fc-content {
+        width:100% !important;
+    }
+
+    .fc-event-time {
+        font-size:small !important;
+        font-weight:bold !important;
+    }
+    .fc-event-priority {
+        background-color:red !important;
+    }
+
+    body {
+		text-align: center;
+		font-size: 14px;
+	}
+	
+    .fc-header {
+        border:0px !important;
+        margin:0px;
+    }
+
+    .fc-header-right, .fc-header-left {
+        vertical-align:bottom !important;
+    }
+
+    .fc-button {
+        background-image:none !important;
+        background-color: lightgray;
+                -webkit-border-radius: 0px !important;
+        -moz-border-radius: 0px !important;
+        border-radius: 0px !important;
+    }
+
+    .fc-day-number {
+        font-size:large !important;
+        padding-top:5px !important;
+    }
+
+    .fc-event {
+        -webkit-border-radius: 0px !important;
+        -moz-border-radius: 0px !important;
+        border-radius: 0px !important;
+    }
+
+    #calendar {
+        height:200% !important;
+        width:100% !important;
+    }
+
+    .calendarFilterHeader {
+        color:black;
+        border-bottom:1px solid lightgray;
+    }
+
+        .calendarFilterItem {
+        color:black;
+        font-weight:300;
+        font-size:small;
+    }
+
+    .fc-border-separate {
+        border:0px !important;
+        border-collapse:collapse !important;
+    }
+
+    .fc-year-weekly-head {
+        border:0px;
+        font-weight:200;
+        background-color:#0094ff;
+        color:white;
+        padding:7px !important;
+    }
+
+    .fc-day-header {
+        border:0px;
+        font-weight:200;
+        background-color:#0094ff;
+        color:white;
+        padding:15px !important;
+    }
+
+    .fc-day {
+        border-top:1px solid black !important;
+   } 
+
+    .fc-widget-header {
+        border:0px;
+        font-weight:200;
+        background-color:#0094ff;
+        color:white;
+        padding:7px !important;
+        border-right:1px solid lightblue !important;
+    }
+
+    table tr:nth-of-type(2n) {
+        background:none;
+    }
+
+    .fc-event-coe1, .fc-event-analyst1{
+        background-color: rgb(219, 51, 64);
+        border:1px solid rgb(180, 30, 40);
+    }
+    .fc-event-coe2, .fc-event-analyst2{
+        background-color: rgb(232, 183, 26);
+        border:1px solid rgb(200, 160, 10);
+    }
+    .fc-event-coe3, .fc-event-analyst4{
+        background-color: Rgb(0, 160, 62);
+        border:1px solid rgb(0, 111, 50);
+    }
+    .fc-event-coe4, .fc-event-analyst5{
+        background-color: rgb(40, 171, 227);
+        border:1px solid rgb(30, 150, 200);
+    }
+    .fc-event-coe5, .fc-event-analyst7{
+        background-color: rgb(241, 109, 139);
+        border:1px solid rgb(200, 50, 100);
+    }
+    .fc-event-coe6 {
+        background-color: rgb(255, 85, 1);
+        border:1px solid rgb(180, 59, 0);
+    }
+    .fc-event-coe7 {
+        background-color: rgb(255, 85, 1);
+        border:1px solid rgb(180, 59, 0);
+    }
+   
+    .fc-today {
+        border:2px solid #0094ff !important;
+        background:none;
+
+    }
+
+    .calendarFilterItem:hover, .fc-day:hover, .fc-past:hover, .calendarFilterHeader:hover {
+        background:lightblue;
+    }
+    .calendarFilterItem:active, .fc-day:active, .fc-past:active, .calendarFilterHeader:active {
+        background: #0094ff;
+    }
+
+    .fc-state-down, .fc-state-active {
+        background-color: #0094ff;
+        color:white;
+    }
+
+
+</style>
+
+<!--style="padding:0px;margin-right:-50px;margin:0;"-->
+    <br />
+<div class="row">
+    <div class ="small-10 columns" style="padding-left:0px !important">
+    <div style="margin-right:10%"id='calendar'></div>
+    
+        @{string[] colors = {
+            "rgb(219, 51, 64)",
+            "rgb(232, 183, 26)",
+            "Rgb(0, 160, 62)",
+            "rgb(40, 171, 227)",
+            "rgb(233, 76, 111)",
+            "rgb(255, 85, 1)",
+            "RGB(255, 85, 1)"
+        };}
+    </div>
+    <div class ="small-2 columns">
+    <ul class="fa-ul" style="text-align:left;">
+    <label class="calendarFilterHeader" id="switchColorCoE"><i class="fa fa-filter"></i> Filter by CoE</label>
+    <div id="coeColors" style="display:none">
+    @{
+        var k =0;
+        foreach(var coe in Model.allCoEs){
+            <li class="calendarFilterItem" filterID="@coe.CoE_ID" field="coeID"><i class="fa fa-square" style="color:@colors[k] !important" ></i>@coe.CoE</li>
+            k++;
+        }
+        <li class="calendarFilterItem" filterID="" field="coeID"><i class="fa fa-eraser"></i>Clear</li>
+    }
+    </div>
+    <br />
+    <label class="calendarFilterHeader" id="switchColorAnalyst"><i class="fa fa-filter"></i> Filter by Analyst</label>
+    <div id="analystColors" style="display:none">
+    @{
+
+        var l =0;
+        foreach(var analyst in Model.allAnalysts){
+            <li class="calendarFilterItem" filterID="@analyst.Analyst_ID" field="analystID"><i class="fa fa-square" style="color:@colors[l] !important" ></i>@analyst.Last_Name,@analyst.First_Name</li>
+            l++;
+        }
+        <li class="calendarFilterItem" filterID="" field="analystID"><i class="fa fa-eraser"></i>Clear</li>
+    }
+    </div>
+    </div>
+</div>
+  
+
+    <script>
+
+        $(document).ready(function ($) {
+
+            $('.calendarFilterItem').on('click',function(){
+                $('#calendar').fullCalendar('removeAllEventSource');
+                $('#calendar').fullCalendar('addEventSource',{
+                    url: 'taskList?' + $(this).attr('field') + "=" + $(this).attr('filterID'),
+                    async:false,
+                });
+                if($(this).attr('field') === 'coeID'){
+                    colorCoE();
+                } else if($(this).attr('field') === 'analystID') {
+                    colorAnalyst();
+                }
+            });
+
+            function getDate(date, format) {
+                if (date !== ""){
+                    var parsedDate = Date.parse(date.toString()).toString();
+                    var realValue = new Date(parsedDate);
+                    return realValue.format(format);
+                }else{
+                    return null;
+                }
+            }
+
+            //var currFilter = 1;
+            //document.getElementById('analystColors').style.display = "none";
+
+            var colors = [
+                @foreach(var color in colors){
+                    @:"@color",
+                }
+            ];
+
+            var currFilter = "";
+
+            var eventColorsCoE = {
+                @{var i=0;
+                foreach(var coe in Model.allCoEs){
+                    @:Color_@coe.CoE_ID : colors[@i],
+                    i++;
+                }}
+            }
+            var eventColorsAnalyst = {
+                @{var j=0;
+                foreach(var analyst in Model.allAnalysts){
+                    @:Color_@analyst.Analyst_ID: colors[@j],
+                    j++;
+                }}
+            }
+
+            //$('#switchColorCoE').on("click",function(){
+            $(document).on('click','#switchColorCoE',function(){
+                colorCoE();
+                currFilter = "CoE";
+            });
+
+            //$('#switchColorCoE').on("click",function(){
+            $(document).on('click','#switchColorAnalyst',function(){
+                colorAnalyst();
+                currFilter = "Analyst";
+            });
+
+            function colorCoE(){
+                document.getElementById('coeColors').style.display = "block";
+                document.getElementById('analystColors').style.display = "none";
+                $('.fc-event').each(function(index){
+                    $(this).removeClass (function (index, css) {
+                        return (css.match (/\bfc-event-analyst\S+/g) || []).join(' ');
+                    });
+                    var coeID = $(this).attr('coe_id');
+                    $(this).addClass('fc-event-coe' + coeID);
+                });
+            };
+
+            function colorAnalyst(){
+                document.getElementById('coeColors').style.display = "none";
+                document.getElementById('analystColors').style.display = "block";
+                $('.fc-event').each(function(index){
+                    $(this).removeClass (function (index, css) {
+                        return (css.match (/\bfc-event-coe\S+/g) || []).join(' ');
+                    });
+                    var coeID = $(this).attr('analyst_id');
+                    $(this).addClass('fc-event-analyst' + coeID);
+                });
+            };
+
+            $('#calendar').fullCalendar({
+                header: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'year,month,agendaWeek,agendaDay'
+                },
+                editable: true,
+                height: $( document ).height() *0.90,
+                eventSources: [
+                            {
+                                url: 'taskList', // use the `url` property
+                                type: 'GET',
+                                error:function(){
+                                    console.log("ASDFADS");
+                                }
+                            }
+                ],
+                dayClick: function(date, allDay, jsEvent, view) {
+                    console.log(date);
+                    $('#calendar').fullCalendar( 'gotoDate', date);
+                    $('#calendar').fullCalendar( 'changeView', "agendaDay");
+                    fixView();
+                },
+                editable: true,
+                eventDrop: function (event, dayDelta, minuteDelta, allDay, revertFunc) {
+                    updateDrop(event, false)
+                },
+                eventResize: function (event, dayDelta, minuteDelta, allDay, revertFunc) {
+                    updateDrop(event, true)
+                },
+                eventClick: function(calEvent, jsEvent, view) {
+                    var win = window.open("/task/create?id=" + calEvent.task_id, "Edit", "width=1200,height=600,scrollbars=yes,resizable=no");
+                    var winTimer = window.setInterval(function() {
+                        window.open("/task/create?id=" + calEvent.task_id, "Edit", "width=1200,height=600,scrollbars=yes,resizable=no");
+                        clearInterval(winTimer);
+                    }, 1000);
+                    win.isPopup = true;
+                    var pollTimer = window.setInterval(function() {
+                        if (win.closed !== false) { // !== is required for compatibility with Opera
+                            window.clearInterval(pollTimer);
+                            console.log("close");
+                            $('#calendar').fullCalendar( 'refetchEvents' )
+                            $('#calendar').fullCalendar( 'rerenderEvents' );
+                            setTimeout(function(){
+                                if (currFilter === "CoE"){
+                                    colorCoE();
+                                } else if (currFilter === "Analyst"){
+                                    colorAnalyst();
+                                }
+                            }, 500);
+                        }
+                    }, 200);
+                },
+                scrollTime:'04:00:00',
+            });
+
+            function updateDrop(event, resize) {
+                $.getJSON('drop', { Task_ID_Filter: parseInt(event.task_id), Instance_ID_Filter: parseInt(event.instance_id) }, function (data) {
+                    var exception_id;
+                    var comment;
+                    var workload;
+                    var workloadDays;
+                    var workloadHours;
+                    var workloadUnits;
+                    if (data.Exception_ID != 0) {
+                        exception_id = data.Exception_ID;
+                        comment = data.Comment;
+                        workloadDays = data.Workload;
+                        workloadUnits = data.Workload_Unit_ID;
+                    }
+                    var newDate;
+                    newDate = event.end == null ? event.start.toUTCString() : event.end.toUTCString();
+                    if (resize) {
+                        if (event.end !== null){
+                            workload = new Date(event.end - event.start);
+                            workloadDays = workload / 1000 / 60 / 60 / 24 + 1;
+                            if (workloadDays < 2){
+                                workloadHours = parseInt(((workloadDays-1)*24) *4.0) +1;
+                                workloadDays = null;
+                                workloadUnits = 1;
+                            } else {
+                                workloadUnits = 2;
+                            }
+                        } else {
+                            workloadDays = null;
+                        }
+                    }
+                    var time = event.end.format("hh:MM:ss");
+                    var timeOfDayID;
+                    switch(time){
+                        case "12:30:00":
+                            timeOfDayID=1;
+                            break;
+                        case "01:00:00":
+                            timeOfDayID=2;
+                            break;
+                        case "01:30:00":
+                        default:
+                            timeOfDayID=3;
+                            break;
+                    };
+
+                    var parameters = [];
+                    parameters.push({
+                        Task_ID: parseInt(event.task_id),
+                        Instance_ID: parseInt(event.instance_id),
+                        Date: newDate,
+                        Time_Of_Day_ID: timeOfDayID,
+                        Canceled: false,
+                        Comment: comment,
+                        Exception_ID: exception_id,
+                        Workload: workloadDays || workloadHours,
+                        Workload_Unit_ID: workloadUnits,
+                    })
+                    $.ajax({
+                        url: "@Url.Action("drop", "Task")",
+                        type: 'POST',
+                        data: JSON.stringify(parameters),
+                        contentType: 'application/json; charset=utf-8',
+                        success: function (result) {
+                            $('#calendar').fullCalendar( 'rerenderEvents' );
+                        },
+                        error: function (request) {
+                            $('#calendar').fullCalendar( 'rerenderEvents' );
+                        }
+                    });
+                });
+
+            }
+            $(".fc-button").on('click',function(){
+                if($(this).hasClass('fc-button-agendaWeek') || $(this).hasClass('fc-button-agendaDay')){
+                    fixView()
+                }
+            });
+
+            function fixView(){
+                for (i = 0; i <= 3; i++){
+                    $(".fc-slot" + i).css('height','200px');
+                }
+                for (i = 4; i <= 50; i++){
+                    $(".fc-slot" + i).hide();
+                }
+                $('#calendar').fullCalendar( 'rerenderEvents' );
+                $(".fc-view").children().eq(1).children().eq(3).css('overflow-y','hidden');
+                $(".fc-view").children().eq(1).children().eq(3).css('overflow-y','hidden');
+                $(".fc-view").children().eq(1).children().eq(3).children().eq(0).css('height','600px');
+                $(".fc-view").css('height','649px').css('oveflow','hidden');
+                $(".fc-agenda-axis").each(function(index){
+                    if(index === 3){
+                        this.textContent="Mor";
+                    } else if (index===4){
+                        this.textContent="Aftr";
+                    } else if (index ===5){
+                        this.textContent="End";
+                    }
+                });
+                $(".fc-agenda-allday").hide();
+                $(".fc-agenda-divider-inner").hide();
+
+                setTimeout(function(){
+                    if (currFilter === "CoE"){
+                        colorCoE();
+                    } else if (currFilter === "Analyst"){
+                        colorAnalyst();
+                    }
+                }, 500);
+            }
+
+            setInterval(function(){
+                if (currFilter === "CoE"){
+                    colorCoE();
+                } else if (currFilter === "Analyst"){
+                    colorAnalyst();
+                }
+            }, 500);
+
+            colorCoE();
+            currFilter = "CoE";
+        });
+
+    </script>
