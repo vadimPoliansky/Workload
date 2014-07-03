@@ -403,40 +403,72 @@
         };
 
         $('#createFrontPage').on('click', function(){
+            createFrontPage(null);
+        });
+
+        function createFrontPage(instance){
             var allInstances = [];
             var dataSourcePath = document.getElementById('Data_Source').value ? document.getElementById('Data_Source').value : "";
             dataSourcePath += "\\";
             dataSourcePath += document.getElementById('Data_Source_File').value ? document.getElementById('Data_Source_File').value : "";
-            if ($('span[Instance]').length > 0){
-                $('span[Instance]').each(function(index){
-                    var instanceID = this.getAttribute("Instance_ID");
-                    var canceled = document.getElementById('Canceled_' + instanceID).checked;
-                    if (!canceled){
-                        var originalDate = document.getElementById('Original_Task_Date_' + instanceID).textContent;
-                        var newDate = document.getElementById('Task_Date_' + instanceID).value ;
-                        var due_date;
-                        if (newDate != "" && !!newDate){
-                            due_date = newDate;
-                        }else {
-                            due_date =  originalDate;
+            if (instance === null){
+                if ($('span[Instance]').length > 0){
+                    $('span[Instance]').each(function(index){
+                        var instanceID = this.getAttribute("Instance_ID");
+                        var canceled = document.getElementById('Canceled_' + instanceID).checked;
+                        if (!canceled){
+                            var originalDate = document.getElementById('Original_Task_Date_' + instanceID).textContent;
+                            originalDate = originalDate.substr(0, originalDate.indexOf(';'));
+                            var newDate = document.getElementById('Task_Date_' + instanceID).value ;
+                            var due_date;
+                            if (newDate != "" && !!newDate){
+                                due_date = newDate;
+                            }else {
+                                due_date =  originalDate;
+                            }
+                            allInstances.push({
+                                Task_ID: taskID,
+                                Routine: document.getElementById('Routine').checked,
+                                Priority: document.getElementById('Priority').checked,
+                                CoE_ID: document.getElementById('CoE_ID').value,
+                                Analyst_ID: document.getElementById('Analyst_ID').value,
+                                Description: document.getElementById('Description').value,
+                                Purpose: document.getElementById('Purpose').value,
+                                Requestor: document.getElementById('Requestor').value,
+                                Request_Date: document.getElementById('Request_Date').value,
+                                Comment: document.getElementById('Comment').value,
+                                Data_Source: dataSourcePath,
+                                Task_Date: due_date,
+                            });
                         }
-                        allInstances.push({
-                            Task_ID: taskID,
-                            Routine: document.getElementById('Routine').checked,
-                            Priority: document.getElementById('Priority').checked,
-                            CoE_ID: document.getElementById('CoE_ID').value,
-                            Analyst_ID: document.getElementById('Analyst_ID').value,
-                            Description: document.getElementById('Description').value,
-                            Purpose: document.getElementById('Purpose').value,
-                            Requestor: document.getElementById('Requestor').value,
-                            Request_Date: document.getElementById('Request_Date').value,
-                            Comment: document.getElementById('Comment').value,
-                            Data_Source: dataSourcePath,
-                            Task_Date: due_date,
-                        });
-                    }
-                });
+                    });
+                } else {
+                    allInstances.push({
+                        Task_ID: taskID,
+                        Routine: document.getElementById('Routine').checked,
+                        Priority: document.getElementById('Priority').checked,
+                        CoE_ID: document.getElementById('CoE_ID').value,
+                        Analyst_ID: document.getElementById('Analyst_ID').value,
+                        Description: document.getElementById('Description').value,
+                        Purpose: document.getElementById('Purpose').value,
+                        Requestor: document.getElementById('Requestor').value,
+                        Request_Date: document.getElementById('Request_Date').value,
+                        Comment: document.getElementById('Comment').value,
+                        Task_Date: document.getElementById('Start_Date').value,
+                        Data_Source: dataSourcePath,
+                    });
+                }
             } else {
+                var instanceID = instance;
+                var originalDate = document.getElementById('Original_Task_Date_' + instanceID).textContent;
+                originalDate = originalDate.substr(0, originalDate.indexOf(';'));
+                var newDate = document.getElementById('Task_Date_' + instanceID).value ;
+                var due_date;
+                if (newDate != "" && !!newDate){
+                    due_date = newDate;
+                }else {
+                    due_date =  originalDate;
+                }
                 allInstances.push({
                     Task_ID: taskID,
                     Routine: document.getElementById('Routine').checked,
@@ -448,8 +480,8 @@
                     Requestor: document.getElementById('Requestor').value,
                     Request_Date: document.getElementById('Request_Date').value,
                     Comment: document.getElementById('Comment').value,
-                    Task_Date: document.getElementById('Start_Date').value,
                     Data_Source: dataSourcePath,
+                    Task_Date: due_date,
                 });
             }
             var parameters = [];
@@ -471,7 +503,7 @@
                 error: function (request) {
                 }
             });
-        });
+        };
 
         var fields = document.querySelectorAll('select,input,textarea');
         for (var i = 0; i < fields.length; i++) {
@@ -674,6 +706,14 @@
                         drop(date, instance);
                     }
 
+                    var createFrontPageBtn = document.createElement('span');
+                    createFrontPageBtn.className = 'fa fa-file-o';
+                    createFrontPageBtn.style = "float:right; margin-right:15px;";
+                    createFrontPageBtn.onclick = function(){
+                        instance = this.parentNode.getAttribute("Instance_ID");
+                        createFrontPage(instance);
+                    }
+
                     var revertIcon = document.createElement('span');
                     revertIcon.className = 'fa fa-times';
                     revertIcon.style = "float:right; margin-right:0;";
@@ -698,6 +738,7 @@
 
                     child.appendChild(originalDate);
                     child.appendChild(revertIcon);
+                    child.appendChild(createFrontPageBtn);
                     child.appendChild(task_date);
                     child.appendChild(canceled);
                     child.appendChild(canceledLabel);

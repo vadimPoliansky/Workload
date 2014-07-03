@@ -50,8 +50,8 @@ namespace WorkloadTest.Helper
 
                     combined.ReplaceText("%Description%", instance.Description ?? " ");
                     combined.ReplaceText("%Requestor%", instance.Requestor ?? " ");
-                    combined.ReplaceText("%Request_Date%", instance.Request_Date != null ? instance.Request_Date.ToString() : " ");
-                    combined.ReplaceText("%Task_Date%", instance.Task_Date != null ? instance.Task_Date.ToString() : " ");
+                    combined.ReplaceText("%Request_Date%", instance.Request_Date != null ? instance.Request_Date.Value.ToShortDateString() : " ");
+                    combined.ReplaceText("%Task_Date%", instance.Task_Date != null ? instance.Task_Date.Value.ToShortDateString() : " ");
                     combined.ReplaceText("%Purpose%", instance.Purpose ?? " ");
                     combined.ReplaceText("%Comment%", instance.Comment ?? " ");
                     combined.ReplaceText("%Analyst%", analystName);
